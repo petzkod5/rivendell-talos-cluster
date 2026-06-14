@@ -1,6 +1,9 @@
 authentik:
-  existingSecret:
-    secretName: authentik-secrets
+  postgresql:
+    host: authentik-postgresql
+    name: authentik
+    user: authentik
+    password: ""
 
 postgresql:
   enabled: true
@@ -17,14 +20,17 @@ redis:
   auth:
     enabled: false
 
-server:
-  ingress:
-    enabled: false
-
 global:
+  envFrom:
+    - secretRef:
+        name: authentik-secrets
   env:
     - name: AUTHENTIK_POSTGRESQL__PASSWORD
       valueFrom:
         secretKeyRef:
           name: authentik-secrets
           key: postgresql-password
+
+server:
+  ingress:
+    enabled: false
