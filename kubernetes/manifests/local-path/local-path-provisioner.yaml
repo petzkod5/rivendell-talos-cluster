@@ -70,6 +70,9 @@ data:
   helperPod.yaml: |
     apiVersion: v1
     kind: Pod
+    metadata:
+      name: helper
+      namespace: local-path-storage
     spec:
       containers:
       - name: helper
