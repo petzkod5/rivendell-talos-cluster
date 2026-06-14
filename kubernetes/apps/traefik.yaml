@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.io
+spec:
+  project: default
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: 40.3.0
+    helm:
+      values: |
+        deployment:
+          replicas: 1
+
+        service:
+          type: LoadBalancer
+
+        api:
+          dashboard: true
+          insecure: true
+
+        ports:
+          traefik:
+            expose:
+              default: true
+
+        providers:
+          kubernetesGateway:
+            enabled: true
+
+        gatewayClass:
+          enabled: true
+          name: traefik
+
+        gateway:
+          listeners:
+            web:
+              namespacePolicy:
+                from: All
+
+        ingressRoute:
+          dashboard:
+            enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

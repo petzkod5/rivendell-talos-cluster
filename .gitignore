@@ -19,3 +19,5 @@ kubeconfig
 .idea/
 .vscode/
 *.swp
+*.swo
+*~

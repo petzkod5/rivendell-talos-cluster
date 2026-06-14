@@ -1,0 +1,6 @@
+global:
+  domain: argocd.home.local
+
+configs:
+  params:
+    server.insecure: "true"

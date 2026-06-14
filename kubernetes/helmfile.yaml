@@ -1,56 +1,20 @@
 repositories:
-  - name: metallb
-    url: https://metallb.github.io/metallb
-  - name: traefik
-    url: https://traefik.github.io/charts
-  - name: wiremind
-    url: https://wiremind.github.io/wiremind-helm-charts
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
 
+# Bootstrap only — installs ArgoCD, which then manages all other infrastructure.
+# On a fresh cluster: helmfile sync → ArgoCD up → ArgoCD installs metallb, traefik, itself.
 releases:
-  - name: gateway-api-crds
-    namespace: gateway-system
+  - name: argocd
+    namespace: argocd
     createNamespace: true
-    chart: wiremind/gateway-api-crds
-    version: 1.5.1
-
-  - name: metallb
-    namespace: metallb-system
-    createNamespace: true
-    chart: metallb/metallb
-    version: 0.16.1
+    chart: argo/argo-cd
+    version: 9.5.21
     values:
-      - values/metallb.yaml
-    hooks:
-      - events: ["postsync"]
-        command: kubectl
-        args:
-          - label
-          - namespace
-          - metallb-system
-          - pod-security.kubernetes.io/enforce=privileged
-          - pod-security.kubernetes.io/audit=privileged
-          - pod-security.kubernetes.io/warn=privileged
-          - --overwrite
+      - values/argocd.yaml
 
-  - name: metallb-config
-    namespace: metallb-system
-    chart: ./charts/metallb-config
+  - name: argocd-config
+    namespace: argocd
+    chart: ./charts/argocd-config
     needs:
-      - metallb-system/metallb
-
-  - name: traefik
-    namespace: traefik
-    createNamespace: true
-    chart: traefik/traefik
-    version: 40.3.0
-    needs:
-      - metallb-system/metallb-config
-      - gateway-system/gateway-api-crds
-    values:
-      - values/traefik.yaml
-
-  - name: traefik-config
-    namespace: traefik
-    chart: ./charts/traefik-config
-    needs:
-      - traefik/traefik
+      - argocd/argocd

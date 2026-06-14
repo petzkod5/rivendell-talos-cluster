@@ -1,2 +1,0 @@
-# MetalLB L2 address pool and advertisement are configured via CRs post-install.
-# See: https://metallb.universe.tf/configuration/
