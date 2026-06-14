@@ -1,0 +1,56 @@
+repositories:
+  - name: metallb
+    url: https://metallb.github.io/metallb
+  - name: traefik
+    url: https://traefik.github.io/charts
+  - name: wiremind
+    url: https://wiremind.github.io/wiremind-helm-charts
+
+releases:
+  - name: gateway-api-crds
+    namespace: gateway-system
+    createNamespace: true
+    chart: wiremind/gateway-api-crds
+    version: 1.5.1
+
+  - name: metallb
+    namespace: metallb-system
+    createNamespace: true
+    chart: metallb/metallb
+    version: 0.16.1
+    values:
+      - values/metallb.yaml
+    hooks:
+      - events: ["postsync"]
+        command: kubectl
+        args:
+          - label
+          - namespace
+          - metallb-system
+          - pod-security.kubernetes.io/enforce=privileged
+          - pod-security.kubernetes.io/audit=privileged
+          - pod-security.kubernetes.io/warn=privileged
+          - --overwrite
+
+  - name: metallb-config
+    namespace: metallb-system
+    chart: ./charts/metallb-config
+    needs:
+      - metallb-system/metallb
+
+  - name: traefik
+    namespace: traefik
+    createNamespace: true
+    chart: traefik/traefik
+    version: 40.3.0
+    needs:
+      - metallb-system/metallb-config
+      - gateway-system/gateway-api-crds
+    values:
+      - values/traefik.yaml
+
+  - name: traefik-config
+    namespace: traefik
+    chart: ./charts/traefik-config
+    needs:
+      - traefik/traefik

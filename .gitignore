@@ -1,0 +1,21 @@
+# age / SOPS private keys — never commit
+*.agekey
+*.age-key
+age.key
+keys.txt
+
+# Decrypted artifacts (convention: anything ending in .dec.* is plaintext)
+*.dec
+*.dec.yaml
+*.dec.yml
+*.dec.json
+
+# Local kubeconfig / talosconfig copies
+kubeconfig
+*.kubeconfig
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+*.swp

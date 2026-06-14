@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: ^talos/.*\.yaml$
+    age: age16g6qjznvvhmyc99jauafsawtwwwahes982ckm5c9x7lk2dna3cjq5s0nxd
+  - path_regex: ^talos/talosconfig$
+    age: age16g6qjznvvhmyc99jauafsawtwwwahes982ckm5c9x7lk2dna3cjq5s0nxd
