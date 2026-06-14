@@ -14,6 +14,9 @@ postgresql:
     secretKeys:
       adminPasswordKey: postgresql-password
       userPasswordKey: postgresql-password
+  primary:
+    persistence:
+      storageClass: local-path
 
 redis:
   enabled: true
