@@ -1,0 +1,30 @@
+authentik:
+  existingSecret:
+    secretName: authentik-secrets
+
+postgresql:
+  enabled: true
+  auth:
+    username: authentik
+    database: authentik
+    existingSecret: authentik-secrets
+    secretKeys:
+      adminPasswordKey: postgresql-password
+      userPasswordKey: postgresql-password
+
+redis:
+  enabled: true
+  auth:
+    enabled: false
+
+server:
+  ingress:
+    enabled: false
+
+global:
+  env:
+    - name: AUTHENTIK_POSTGRESQL__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-secrets
+          key: postgresql-password
