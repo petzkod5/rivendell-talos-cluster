@@ -1,6 +1,9 @@
 defaultSettings:
   defaultDataPath: /var/lib/longhorn
 
+preUpgradeChecker:
+  jobEnabled: false
+
 longhornManager:
   tolerations:
     - key: node-role.kubernetes.io/control-plane
