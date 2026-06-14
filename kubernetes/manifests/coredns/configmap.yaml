@@ -19,6 +19,7 @@ data:
             192.168.0.225 authentik.home.local
             192.168.0.225 argocd.home.local
             192.168.0.225 traefik.home.local
+            192.168.0.225 longhorn.home.local
             fallthrough
         }
         kubernetes cluster.local in-addr.arpa ip6.arpa {
