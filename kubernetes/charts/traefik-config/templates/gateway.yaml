@@ -5,7 +5,9 @@ metadata:
   namespace: traefik
 spec:
   parentRefs:
-    - name: traefik-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: traefik-gateway
       namespace: traefik
   hostnames:
     - traefik.home.local
@@ -15,5 +17,8 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: traefik
+        - group: ""
+          kind: Service
+          name: traefik
           port: 8080
+          weight: 1
