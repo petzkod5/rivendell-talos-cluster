@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metallb-config
+  name: argocd-config
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "4"
   finalizers:
     - resources-finalizer.argocd.io
 spec:
@@ -12,10 +12,10 @@ spec:
   source:
     repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
     targetRevision: HEAD
-    path: kubernetes/manifests/metallb-config
+    path: kubernetes/manifests/argocd-config
   destination:
     server: https://kubernetes.default.svc
-    namespace: metallb-system
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true

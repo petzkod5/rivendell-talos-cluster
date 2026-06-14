@@ -1,5 +1,0 @@
-apiVersion: v2
-name: metallb-config
-description: MetalLB IPAddressPool and L2Advertisement CRs
-type: application
-version: 1.0.0

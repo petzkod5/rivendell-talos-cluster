@@ -1,5 +1,0 @@
-apiVersion: v2
-name: traefik-config
-description: Traefik Gateway and HTTPRoute resources
-type: application
-version: 1.0.0

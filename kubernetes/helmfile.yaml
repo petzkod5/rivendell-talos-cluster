@@ -3,7 +3,8 @@ repositories:
     url: https://argoproj.github.io/argo-helm
 
 # Bootstrap only — installs ArgoCD, which then manages all other infrastructure.
-# On a fresh cluster: helmfile sync → ArgoCD up → ArgoCD installs metallb, traefik, itself.
+# On a fresh cluster: helmfile sync → ArgoCD up → root App created → ArgoCD
+# installs gateway-api-crds, metallb, traefik, and manages itself going forward.
 releases:
   - name: argocd
     namespace: argocd
@@ -12,9 +13,10 @@ releases:
     version: 9.5.21
     values:
       - values/argocd.yaml
-
-  - name: argocd-config
-    namespace: argocd
-    chart: ./charts/argocd-config
-    needs:
-      - argocd/argocd
+    hooks:
+      - events: ["postsync"]
+        command: kubectl
+        args:
+          - apply
+          - -f
+          - apps/root.yaml

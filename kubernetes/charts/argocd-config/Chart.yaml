@@ -1,5 +1,0 @@
-apiVersion: v2
-name: argocd-config
-description: ArgoCD HTTPRoute and root App-of-Apps bootstrap
-type: application
-version: 1.0.0

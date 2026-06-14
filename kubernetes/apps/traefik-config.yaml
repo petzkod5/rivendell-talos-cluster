@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
     targetRevision: HEAD
-    path: kubernetes/charts/traefik-config
+    path: kubernetes/manifests/traefik-config
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik

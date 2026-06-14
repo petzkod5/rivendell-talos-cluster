@@ -1,0 +1,2 @@
+# No custom values needed — MetalLB defaults are sufficient.
+# IP pool and L2 advertisement are configured via manifests/metallb-config/.
