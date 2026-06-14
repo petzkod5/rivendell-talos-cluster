@@ -12,6 +12,9 @@ ports:
   traefik:
     expose:
       default: true
+  websecure:
+    expose:
+      default: true
 
 providers:
   kubernetesGateway:
@@ -24,8 +27,18 @@ gatewayClass:
 gateway:
   listeners:
     web:
+      port: 8000
+      protocol: HTTP
       namespacePolicy:
         from: All
+    websecure:
+      port: 8443
+      protocol: HTTPS
+      namespacePolicy:
+        from: All
+      certificateRefs:
+        - name: petzko-sh-tls
+          namespace: traefik
 
 ingressRoute:
   dashboard:
