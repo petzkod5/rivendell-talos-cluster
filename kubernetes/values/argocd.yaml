@@ -4,3 +4,16 @@ global:
 configs:
   params:
     server.insecure: "true"
+  cm:
+    url: http://argocd.home.local
+    oidc.config: |
+      name: Authentik
+      issuer: http://authentik.home.local/application/o/argocd/
+      clientID: dwqTO2ZiLydjjOFzJaJAOToDpRIjDgPmuqIrphZD
+      clientSecret: $oidc.authentik.clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - email
+  rbac:
+    policy.default: role:admin
