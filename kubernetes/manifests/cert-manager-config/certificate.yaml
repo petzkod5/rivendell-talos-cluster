@@ -1,6 +1,3 @@
-# Wildcard certificate for petzko.sh — stored in traefik namespace
-# so the Gateway can reference it directly for TLS termination.
-# Uses staging issuer first — switch to letsencrypt-prod once verified.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -9,7 +6,7 @@ metadata:
 spec:
   secretName: petzko-sh-tls
   issuerRef:
-    name: letsencrypt-staging
+    name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
     - petzko.sh
