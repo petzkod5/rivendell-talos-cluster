@@ -7,9 +7,31 @@ This is a Talos Linux Kubernetes homelab cluster managed with GitOps (ArgoCD) an
 - **Control plane:** `192.168.0.150` (also schedulable — no NoSchedule taint)
 - **Worker:** `192.168.0.155`
 - **Talos:** v1.13.4 | **Kubernetes:** v1.36.1
-- **MetalLB pool:** `192.168.0.225–192.168.0.255` — Traefik claims `.225`
+- **MetalLB pool:** `192.168.0.225–192.168.0.255`
 - **Ingress:** Traefik v3 using native Kubernetes Gateway API (`HTTPRoute`, not `IngressRoute`)
 - **Auth:** Authentik at `authentik.home.local` — GitHub OAuth upstream, OIDC downstream to ArgoCD and future services
+- **TLS:** cert-manager with Cloudflare DNS-01, wildcard cert for `*.petzko.sh`
+- **DDNS:** `favonia/cloudflare-ddns` keeps `petzko.sh` A records current
+
+## Dual-Traefik Network Architecture
+
+Two LoadBalancer IPs on the **same** Traefik deployment — one internal, one external:
+
+| Service | MetalLB IP | Ports | Purpose |
+|---|---|---|---|
+| `traefik` (helm-managed) | `192.168.0.225` | 80, 8080 | Internal only — `*.home.local` |
+| `traefik-external` (raw manifest) | `192.168.0.226` | 443 | External — `*.petzko.sh`, router port-forwards here |
+
+Router forwards port `443` → `192.168.0.226` **only**. The `.225` IP is never exposed publicly.
+
+**Gateway listeners on `traefik-gateway`:**
+- `web` (port 8000) → `sectionName: web` — internal `*.home.local` HTTP routes
+- `websecure` (port 8443) → `sectionName: websecure` — external `*.petzko.sh` HTTPS routes, TLS via `petzko-sh-tls` cert
+
+**HTTPRoute conventions:**
+- Internal services: `parentRefs[].sectionName: web`, hostname `*.home.local`
+- External services: `parentRefs[].sectionName: websecure`, hostname `*.petzko.sh`
+- Never mix: services like Longhorn, ArgoCD, Traefik dashboard are internal-only forever
 
 ## Repository layout
 

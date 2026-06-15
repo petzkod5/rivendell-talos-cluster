@@ -13,8 +13,10 @@ ports:
     expose:
       default: true
   websecure:
+    # Not exposed on the internal service — handled by the separate
+    # traefik-external Service which gets its own MetalLB IP (.226).
     expose:
-      default: true
+      default: false
 
 providers:
   kubernetesGateway:
