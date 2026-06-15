@@ -1,0 +1,129 @@
+defaultRules:
+  create: true
+  rules:
+    etcd: false               # Talos etcd requires special TLS config to scrape
+    kubeControllerManager: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+
+# Disable scraping of Talos-managed control plane components that
+# don't expose standard metrics endpoints. Avoids constant "target down" alerts.
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+
+grafana:
+  defaultDashboardsEnabled: true
+  defaultDashboardsTimezone: browser
+
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+
+  grafana.ini:
+    server:
+      root_url: http://grafana.home.local
+    users:
+      allow_sign_up: false
+    auth:
+      disable_login_form: false
+    # Authentik OIDC — enable after creating an Authentik OIDC provider for Grafana
+    # and creating the grafana-oidc secret in the monitoring namespace:
+    #   kubectl create secret generic grafana-oidc -n monitoring \
+    #     --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_ID=<id> \
+    #     --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=<secret>
+    # Then set auth.generic_oauth.enabled: true and add envFromSecret: grafana-oidc
+    auth.generic_oauth:
+      enabled: false
+      name: Authentik
+      allow_sign_up: true
+      scopes: openid profile email
+      auth_url: http://authentik.home.local/application/o/authorize/
+      token_url: http://authentik.home.local/application/o/token/
+      api_url: http://authentik.home.local/application/o/userinfo/
+      role_attribute_path: "contains(groups[*], 'authentik Admins') && 'Admin' || 'Viewer'"
+
+  persistence:
+    enabled: true
+    storageClassName: longhorn
+    size: 10Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    retentionSize: 45GiB
+
+    # Scrape ALL ServiceMonitors/PodMonitors/ProbeMonitors across the cluster,
+    # not just ones that match the helm release labels.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+
+    resources:
+      requests:
+        cpu: 200m
+        memory: 1Gi
+      limits:
+        memory: 4Gi
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+nodeExporter:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
