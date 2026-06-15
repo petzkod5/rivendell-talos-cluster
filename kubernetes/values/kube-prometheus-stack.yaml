@@ -111,6 +111,18 @@ prometheus:
       runAsUser: 1000
       fsGroupChangePolicy: "Always"
 
+    initContainers:
+      - name: fix-permissions
+        image: busybox:1.28
+        command: ["sh", "-c", "chown -R 1000:2000 /prometheus && chmod -R 775 /prometheus"]
+        volumeMounts:
+          - name: prometheus-kube-prometheus-stack-prometheus-db
+            mountPath: /prometheus
+        securityContext:
+          runAsUser: 0
+          runAsNonRoot: false
+          allowPrivilegeEscalation: false
+
     # local-path: uses the control plane's 248GB disk. Metrics don't need
     # replication — if the node restarts, data is retained on local disk.
     storageSpec:
