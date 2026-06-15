@@ -25,11 +25,11 @@ alertmanager:
     storage:
       volumeClaimTemplate:
         spec:
-          storageClassName: longhorn
+          storageClassName: local-path
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 2Gi
+              storage: 1Gi
     resources:
       requests:
         cpu: 50m
@@ -71,8 +71,8 @@ grafana:
 
   persistence:
     enabled: true
-    storageClassName: longhorn
-    size: 10Gi
+    storageClassName: local-path
+    size: 5Gi
 
   resources:
     requests:
@@ -89,7 +89,7 @@ grafana:
 prometheus:
   prometheusSpec:
     retention: 15d
-    retentionSize: 45GiB
+    retentionSize: 28GiB
 
     # Scrape ALL ServiceMonitors/PodMonitors/ProbeMonitors across the cluster,
     # not just ones that match the helm release labels.
@@ -98,14 +98,16 @@ prometheus:
     ruleSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
 
+    # local-path: uses the control plane's 248GB disk. Metrics don't need
+    # replication — if the node restarts, data is retained on local disk.
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: longhorn
+          storageClassName: local-path
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 50Gi
+              storage: 30Gi
 
     resources:
       requests:
