@@ -37,6 +37,13 @@ alloy:
           source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance"]
           target_label  = "instance"
         }
+        // loki.source.kubernetes reads via the K8s API and does not attach a
+        // stream label (unlike file tailers that parse CRI log format).
+        // Set it to "stdout" so dashboards that filter on stream=~"$stream" work.
+        rule {
+          target_label = "stream"
+          replacement  = "stdout"
+        }
       }
 
       loki.source.kubernetes "pods" {
