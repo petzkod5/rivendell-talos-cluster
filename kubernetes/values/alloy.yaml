@@ -2,53 +2,53 @@ alloy:
   # Logs-only for now. OTLP receiver gets added when Tempo lands.
   configMap:
     content: |-
-      // Discover all pods cluster-wide; loki.source.kubernetes will tail
-      // their container logs through the Kubernetes API (no hostPath needed,
-      // simpler on Talos).
-      discovery.kubernetes "pods" {
-        role = "pod"
+      // File-based Kubernetes log collection.
+      // Tails /var/log/pods CRI log files directly on the host. Labels are
+      // extracted from the file path — more reliable than loki.source.kubernetes
+      // (API-based) which does not forward discovery relabeled target labels.
+
+      local.file_match "pods" {
+        path_targets = [{__path__ = "/var/log/pods/*/*/*.log"}]
+        sync_period  = "5s"
       }
 
-      // Standardize labels for LogQL queries.
+      // Extract namespace, pod, container from the CRI log file path.
+      // Path format: /var/log/pods/{namespace}_{pod}_{uid}/{container}/*.log
+      // Namespace and pod names cannot contain underscores in Kubernetes, so
+      // splitting on _ is unambiguous.
       discovery.relabel "pod_logs" {
-        targets = discovery.kubernetes.pods.targets
+        targets = local.file_match.pods.targets
 
         rule {
-          source_labels = ["__meta_kubernetes_namespace"]
+          source_labels = ["__path__"]
+          regex         = "/var/log/pods/([^_/]+)_[^_/]+_[^/]+/[^/]+/.*"
+          replacement   = "$1"
           target_label  = "namespace"
         }
         rule {
-          source_labels = ["__meta_kubernetes_pod_name"]
+          source_labels = ["__path__"]
+          regex         = "/var/log/pods/[^_/]+_([^_/]+)_[^/]+/[^/]+/.*"
+          replacement   = "$1"
           target_label  = "pod"
         }
         rule {
-          source_labels = ["__meta_kubernetes_pod_container_name"]
+          source_labels = ["__path__"]
+          regex         = "/var/log/pods/[^_/]+_[^_/]+_[^/]+/([^/]+)/.*"
+          replacement   = "$1"
           target_label  = "container"
-        }
-        rule {
-          source_labels = ["__meta_kubernetes_pod_node_name"]
-          target_label  = "node"
-        }
-        rule {
-          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
-          target_label  = "app"
-        }
-        rule {
-          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance"]
-          target_label  = "instance"
-        }
-        // loki.source.kubernetes reads via the K8s API and does not attach a
-        // stream label (unlike file tailers that parse CRI log format).
-        // Set it to "stdout" so dashboards that filter on stream=~"$stream" work.
-        rule {
-          target_label = "stream"
-          replacement  = "stdout"
         }
       }
 
-      loki.source.kubernetes "pods" {
+      loki.source.file "pods" {
         targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.process.cri.receiver]
+      }
+
+      // Parse CRI log format: <timestamp> <stream> <flags> <message>
+      // Sets the real stream label (stdout or stderr) and strips CRI prefixes.
+      loki.process "cri" {
         forward_to = [loki.write.default.receiver]
+        stage.cri {}
       }
 
       loki.write "default" {
@@ -67,15 +67,24 @@ alloy:
     limits:
       memory: 256Mi
 
+  mounts:
+    extra:
+      - name: varlogpods
+        mountPath: /var/log/pods
+        readOnly: true
+
 controller:
   type: daemonset
+  volumes:
+    extra:
+      - name: varlogpods
+        hostPath:
+          path: /var/log/pods
 
 # Self-metrics scraped via the chart's built-in ServiceMonitor
 serviceMonitor:
   enabled: true
 
-# RBAC: chart's default ClusterRole grants pods/log read, which is what
-# loki.source.kubernetes needs. No extra rules required.
 rbac:
   create: true
 
