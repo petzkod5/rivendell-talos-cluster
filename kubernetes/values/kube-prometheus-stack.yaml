@@ -57,9 +57,19 @@ grafana:
     userKey: admin-user
     passwordKey: admin-password
 
+  # Remove the stale capital-L datasource left over from the initial naming.
+  # deleteDatasources runs before datasource upserts on every Grafana restart.
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      deleteDatasources:
+        - name: Loki
+          orgId: 1
+
   additionalDataSources:
     - name: loki
       type: loki
+      uid: loki
       access: proxy
       url: http://loki.monitoring.svc.cluster.local:3100
       jsonData:
