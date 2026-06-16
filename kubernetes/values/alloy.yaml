@@ -1,0 +1,75 @@
+alloy:
+  # Logs-only for now. OTLP receiver gets added when Tempo lands.
+  configMap:
+    content: |-
+      // Discover all pods cluster-wide; loki.source.kubernetes will tail
+      // their container logs through the Kubernetes API (no hostPath needed,
+      // simpler on Talos).
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      // Standardize labels for LogQL queries.
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          target_label  = "app"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance"]
+          target_label  = "instance"
+        }
+      }
+
+      loki.source.kubernetes "pods" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.write.default.receiver]
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
+
+  clustering:
+    enabled: false
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+controller:
+  type: daemonset
+
+# Self-metrics scraped via the chart's built-in ServiceMonitor
+serviceMonitor:
+  enabled: true
+
+# RBAC: chart's default ClusterRole grants pods/log read, which is what
+# loki.source.kubernetes needs. No extra rules required.
+rbac:
+  create: true
+
+# No persistence — Alloy is stateless for log forwarding

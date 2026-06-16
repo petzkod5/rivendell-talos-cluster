@@ -57,6 +57,14 @@ grafana:
     userKey: admin-user
     passwordKey: admin-password
 
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki.monitoring.svc.cluster.local:3100
+      jsonData:
+        maxLines: 1000
+
   grafana.ini:
     server:
       root_url: http://grafana.home.local

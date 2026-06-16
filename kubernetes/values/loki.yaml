@@ -1,0 +1,93 @@
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 1
+
+  storage:
+    type: filesystem
+    bucketNames:
+      chunks: chunks
+      ruler: ruler
+      admin: admin
+
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+  limits_config:
+    retention_period: 168h
+
+  compactor:
+    retention_enabled: true
+    delete_request_store: filesystem
+
+  # Disable the embedded ruler — we use kube-prometheus-stack's Alertmanager
+  # for routing, and Prometheus owns alert rules. Loki rules can come later.
+  rulerConfig:
+    enable_api: false
+
+singleBinary:
+  replicas: 1
+  persistence:
+    enabled: true
+    storageClass: local-path
+    size: 10Gi
+    accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  # Mounts /var/loki directly, no subPath — sidesteps the Talos kubelet
+  # subPath bind-mount bug we hit on kube-prometheus-stack. If a future
+  # chart version introduces subPath, mirror the disableMountSubPath fix.
+  podSecurityContext:
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    fsGroupChangePolicy: Always
+    runAsNonRoot: true
+
+# Disable all other deployment modes
+read:
+  replicas: 0
+write:
+  replicas: 0
+backend:
+  replicas: 0
+
+# No gateway in SingleBinary mode — clients hit loki.monitoring.svc:3100 directly
+gateway:
+  enabled: false
+
+# Disable caches and ancillary components — overkill for homelab scale
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
+lokiCanary:
+  enabled: false
+test:
+  enabled: false
+
+# Self-metrics: Prometheus already scrapes any ServiceMonitor cluster-wide
+# (serviceMonitorSelectorNilUsesHelmValues: false in kube-prometheus-stack values)
+monitoring:
+  selfMonitoring:
+    enabled: false
+    grafanaAgent:
+      installOperator: false
+  serviceMonitor:
+    enabled: true
+  lokiCanary:
+    enabled: false
