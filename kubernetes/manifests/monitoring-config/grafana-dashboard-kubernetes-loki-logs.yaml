@@ -431,8 +431,10 @@ data:
             "name": "namespace",
             "options": [],
             "query": {
-              "query": "label_values(namespace)",
-              "refId": "StandardVariableQuery"
+              "label": "namespace",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "",
+              "type": 1
             },
             "refresh": 1,
             "regex": "",
@@ -444,8 +446,12 @@ data:
             "allValue": ".+",
             "current": {
               "selected": false,
-              "text": "All",
-              "value": "$__all"
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
             },
             "datasource": {
               "type": "loki",
@@ -457,7 +463,12 @@ data:
             "multi": true,
             "name": "stream",
             "options": [],
-            "query": "label_values(stream)",
+            "query": {
+              "label": "stream",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "",
+              "type": 1
+            },
             "refresh": 1,
             "regex": "",
             "skipUrlSync": false,
@@ -486,8 +497,10 @@ data:
             "name": "container",
             "options": [],
             "query": {
-              "query": "label_values({namespace=~\"$namespace\"}, container)",
-              "refId": "StandardVariableQuery"
+              "label": "container",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{namespace=~\"$namespace\"}",
+              "type": 1
             },
             "refresh": 1,
             "regex": "",
