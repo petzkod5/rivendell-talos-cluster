@@ -57,18 +57,16 @@ grafana:
     userKey: admin-user
     passwordKey: admin-password
 
-  # deleteDatasources runs before datasource upserts on every Grafana restart.
-  # We delete "Loki" (stale capital-L from the initial naming) AND "loki"
-  # (which exists with an auto-generated UID from before we set uid: loki
-  # explicitly — Grafana's provisioner does NOT update UIDs on existing
-  # datasources, only on first create, so we must delete and recreate).
+  # Clean up the stale "Loki" (capital-L) datasource from the initial naming.
+  # Cannot put "loki" (lowercase) here too: this block renders into
+  # datasources.yaml while additionalDataSources renders into datasource.yaml
+  # (singular). Grafana loads alphabetically — singular runs first creating
+  # loki, plural runs second and would re-delete it.
   datasources:
     datasources.yaml:
       apiVersion: 1
       deleteDatasources:
         - name: Loki
-          orgId: 1
-        - name: loki
           orgId: 1
 
   additionalDataSources:
