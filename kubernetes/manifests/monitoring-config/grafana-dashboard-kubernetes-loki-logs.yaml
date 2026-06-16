@@ -229,7 +229,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum(\n    node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{ namespace=\"$namespace\"}\n  * on(namespace,pod)\n    group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=\"$container\"}\n) by (pod)\n",
+              "expr": "sum by (pod) (\n  rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", container=~\"$container\", container!=\"\", image!=\"\"}[5m])\n)",
               "range": true,
               "refId": "A"
             }
@@ -337,7 +337,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum(\n    container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on(namespace,pod)\n    group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=\"$namespace\", workload=\"$container\"}\n) by (pod)",
+              "expr": "sum by (pod) (\n  container_memory_working_set_bytes{namespace=~\"$namespace\", container=~\"$container\", container!=\"\", image!=\"\"}\n)",
               "range": true,
               "refId": "A"
             }
@@ -411,7 +411,15 @@ data:
           },
           {
             "allValue": ".+",
-            "current": {},
+            "current": {
+              "selected": false,
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+            },
             "datasource": {
               "type": "loki",
               "uid": "loki"
@@ -419,7 +427,7 @@ data:
             "definition": "label_values(namespace)",
             "hide": 0,
             "includeAll": true,
-            "multi": false,
+            "multi": true,
             "name": "namespace",
             "options": [],
             "query": {
@@ -458,7 +466,15 @@ data:
           },
           {
             "allValue": ".+",
-            "current": {},
+            "current": {
+              "selected": false,
+              "text": [
+                "All"
+              ],
+              "value": [
+                "$__all"
+              ]
+            },
             "datasource": {
               "type": "loki",
               "uid": "loki"
@@ -466,7 +482,7 @@ data:
             "definition": "label_values({namespace=~\"$namespace\"}, container)",
             "hide": 0,
             "includeAll": true,
-            "multi": false,
+            "multi": true,
             "name": "container",
             "options": [],
             "query": {
