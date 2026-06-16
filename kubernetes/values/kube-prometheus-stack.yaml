@@ -29,6 +29,11 @@ alertmanager:
       runAsUser: 1000
       fsGroupChangePolicy: "Always"
     storage:
+      # Talos kubelet + local-path-provisioner: subPath bind mounts on hostPath
+      # PVCs end up as overlay (containerd image layer) instead of a real bind,
+      # leaving the container with a root-owned ephemeral dir it cannot write
+      # to. Mounting the PVC root directly avoids the broken subPath codepath.
+      disableMountSubPath: true
       volumeClaimTemplate:
         spec:
           storageClassName: local-path
@@ -111,21 +116,15 @@ prometheus:
       runAsUser: 1000
       fsGroupChangePolicy: "Always"
 
-    initContainers:
-      - name: fix-permissions
-        image: busybox:1.28
-        command: ["sh", "-c", "mkdir -p /data/prometheus-db && chown -R 1000:2000 /data/prometheus-db && chmod -R 775 /data/prometheus-db"]
-        volumeMounts:
-          - name: prometheus-kube-prometheus-stack-prometheus-db
-            mountPath: /data
-        securityContext:
-          runAsUser: 0
-          runAsNonRoot: false
-          allowPrivilegeEscalation: false
-
     # local-path: uses the control plane's 248GB disk. Metrics don't need
     # replication — if the node restarts, data is retained on local disk.
     storageSpec:
+      # Talos kubelet + local-path-provisioner: subPath bind mounts on hostPath
+      # PVCs end up as overlay (containerd image layer) instead of a real bind,
+      # leaving the container with a root-owned ephemeral dir it cannot write
+      # to. Mounting the PVC root directly lets fsGroupChangePolicy: Always
+      # apply correct ownership and avoids the broken subPath codepath.
+      disableMountSubPath: true
       volumeClaimTemplate:
         spec:
           storageClassName: local-path
