@@ -114,10 +114,6 @@ grafana:
 
   dashboards:
     loki-dashboards:
-      kubernetes-loki-logs:
-        gnetId: 16976
-        revision: 1
-        datasource: loki
       loki-metrics:
         gnetId: 17781
         revision: 1
