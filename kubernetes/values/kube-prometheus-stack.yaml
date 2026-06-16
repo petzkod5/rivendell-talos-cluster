@@ -58,7 +58,7 @@ grafana:
     passwordKey: admin-password
 
   additionalDataSources:
-    - name: Loki
+    - name: loki
       type: loki
       access: proxy
       url: http://loki.monitoring.svc.cluster.local:3100
@@ -117,7 +117,7 @@ grafana:
       kubernetes-loki-logs:
         gnetId: 16976
         revision: 1
-        datasource: Loki
+        datasource: loki
       loki-metrics:
         gnetId: 17781
         revision: 1
