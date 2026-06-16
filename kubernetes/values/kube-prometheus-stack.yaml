@@ -114,8 +114,8 @@ grafana:
 
   dashboards:
     loki-dashboards:
-      logging-dashboard-loki-v3:
-        gnetId: 24574
+      kubernetes-loki-logs:
+        gnetId: 16976
         revision: 1
         datasource: Loki
       loki-metrics:
