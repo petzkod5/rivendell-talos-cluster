@@ -31,7 +31,11 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - Replace=true
+      # Replace=true bypasses RespectIgnoreDifferences (it shells out to
+      # `kubectl replace`), causing the chart's empty spec.volumeName to be
+      # sent on bound PVCs and rejected as immutable. ServerSideApply alone
+      # handles the large CRDs that originally justified Replace.
+      - RespectIgnoreDifferences=true
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: privileged
