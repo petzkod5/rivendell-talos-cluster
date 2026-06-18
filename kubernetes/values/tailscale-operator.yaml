@@ -1,0 +1,11 @@
+operatorConfig:
+  hostname: tailscale-operator
+  defaultTags:
+    - tag:operator
+
+proxyConfig:
+  defaultTags: tag:k8s
+
+apiServerProxyConfig:
+  mode: "true"
+  allowImpersonation: "true"
