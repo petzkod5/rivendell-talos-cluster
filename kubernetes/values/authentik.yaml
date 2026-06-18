@@ -34,7 +34,3 @@ global:
 server:
   ingress:
     enabled: false
-  service:
-    annotations:
-      tailscale.com/expose: "true"
-      tailscale.com/hostname: authentik

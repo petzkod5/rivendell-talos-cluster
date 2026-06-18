@@ -3,9 +3,6 @@ deployment:
 
 service:
   type: LoadBalancer
-  annotations:
-    tailscale.com/expose: "true"
-    tailscale.com/hostname: traefik
 
 api:
   dashboard: true
