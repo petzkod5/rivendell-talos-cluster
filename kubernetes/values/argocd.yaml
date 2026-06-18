@@ -17,3 +17,9 @@ configs:
         - email
   rbac:
     policy.default: role:admin
+
+server:
+  service:
+    annotations:
+      tailscale.com/expose: "true"
+      tailscale.com/hostname: argocd

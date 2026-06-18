@@ -18,3 +18,9 @@ longhornDriver:
 
 ingress:
   enabled: false
+
+service:
+  ui:
+    annotations:
+      tailscale.com/expose: "true"
+      tailscale.com/hostname: longhorn
