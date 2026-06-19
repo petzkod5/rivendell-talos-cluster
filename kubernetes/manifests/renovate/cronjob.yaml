@@ -1,0 +1,75 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: renovate
+  namespace: renovate
+spec:
+  # Daily, off-peak. Renovate opens/updates PRs against the configured repos;
+  # CI validates them and low-risk ones automerge (see each repo's renovate.json).
+  schedule: "0 6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: renovate
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            # Makes the emptyDir group-writable for whatever uid the image uses.
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: renovate
+              image: ghcr.io/renovatebot/renovate:43
+              # Repos to process (autodiscover off — explicit list).
+              args:
+                - petzkod5/petzko.sh
+              env:
+                - name: RENOVATE_PLATFORM
+                  value: github
+                - name: RENOVATE_AUTODISCOVER
+                  value: "false"
+                - name: RENOVATE_GIT_AUTHOR
+                  value: "Renovate Bot <renovate@petzko.sh>"
+                - name: LOG_LEVEL
+                  value: info
+                # Keep all writes on the writable tmpfs (root FS is read-only).
+                - name: HOME
+                  value: /tmp
+                - name: RENOVATE_BASE_DIR
+                  value: /tmp/renovate
+                # GitHub PAT (repo + workflow scopes) — created out-of-band:
+                #   kubectl create secret generic renovate -n renovate \
+                #     --from-literal=token=ghp_xxx
+                - name: RENOVATE_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: renovate
+                      key: token
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: tmp
+              emptyDir: {}
