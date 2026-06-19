@@ -71,7 +71,9 @@ spec:
                   memory: 512Mi
                 limits:
                   cpu: "1"
-                  memory: 1Gi
+                  # 1Gi OOM-killed while updating lockfiles across a large
+                  # backlog; the node has ample headroom.
+                  memory: 3Gi
               volumeMounts:
                 - name: tmp
                   mountPath: /tmp
