@@ -37,11 +37,6 @@ spec:
                   value: github
                 - name: RENOVATE_AUTODISCOVER
                   value: "false"
-                # Use the node/npm baked into the image rather than installing
-                # tools at runtime (the read-only root FS blocks containerbase's
-                # /opt writes, which breaks lockfile updates).
-                - name: RENOVATE_BINARY_SOURCE
-                  value: global
                 - name: RENOVATE_GIT_AUTHOR
                   value: "Renovate Bot <renovate@petzko.sh>"
                 - name: LOG_LEVEL
@@ -61,7 +56,11 @@ spec:
                       key: token
               securityContext:
                 allowPrivilegeEscalation: false
-                readOnlyRootFilesystem: true
+                # Renovate's containerbase installs tools (node/npm) to the
+                # image FS at runtime to update lockfiles, so the root FS must be
+                # writable. Other hardening (non-root, dropped caps, seccomp,
+                # no-privilege-escalation) is kept.
+                readOnlyRootFilesystem: false
                 capabilities:
                   drop:
                     - ALL
