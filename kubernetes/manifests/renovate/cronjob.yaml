@@ -4,9 +4,10 @@ metadata:
   name: renovate
   namespace: renovate
 spec:
-  # Daily, off-peak. Renovate opens/updates PRs against the configured repos;
-  # CI validates them and low-risk ones automerge (see each repo's renovate.json).
-  schedule: "0 6 * * *"
+  # Every 2 hours. Renovate opens/updates PRs against the configured repos; CI
+  # validates them and low-risk ones automerge (Renovate self-merges green PRs
+  # on each run, so a tighter cadence = timelier merges).
+  schedule: "0 */2 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
