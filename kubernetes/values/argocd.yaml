@@ -17,3 +17,29 @@ configs:
         - email
   rbac:
     policy.default: role:admin
+
+# Expose component metrics + ServiceMonitors so Prometheus scrapes ArgoCD.
+# kube-prometheus-stack scrapes all ServiceMonitors cluster-wide
+# (serviceMonitorSelectorNilUsesHelmValues: false), so these are auto-discovered.
+# The application-controller exposes argocd_app_info (per-app name/sync/health),
+# which drives the petzko.sh :system services list + ArgoCD status panel.
+controller:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+server:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+repoServer:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+applicationSet:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
