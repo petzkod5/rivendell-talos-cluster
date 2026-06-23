@@ -141,6 +141,13 @@ data:
             "apps_healthy": round(scalar('sum(argocd_app_info{health_status="Healthy"})')),
         }
 
+    # Load average (node-exporter) — optional; summed across nodes = cluster load.
+    load1 = scalar("sum(node_load1)", default=-1)
+    if load1 >= 0:
+        snapshot["cluster"]["load_1"] = round(load1, 2)
+        snapshot["cluster"]["load_5"] = round(scalar("sum(node_load5)"), 2)
+        snapshot["cluster"]["load_15"] = round(scalar("sum(node_load15)"), 2)
+
     # Services manifest — the GitOps apps ArgoCD manages (one series per app).
     # `root` is the app-of-apps bootstrap, not a service; drop it.
     services = sorted(
