@@ -53,7 +53,9 @@ data:
     mem_used = scalar('sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)')
     mem_total = scalar('sum(node_memory_MemTotal_bytes)')
     pods_running = scalar('sum(kube_pod_status_phase{phase="Running"})')
-    pods_total = scalar('count(kube_pod_info)')
+    # Exclude terminal (Succeeded/Failed) job pods — they're completed CronJob
+    # runs, not part of the active workload. Leaves Running/Pending/Unknown.
+    pods_total = scalar('sum(kube_pod_status_phase{phase!~"Succeeded|Failed"})')
     namespaces = scalar('count(kube_namespace_created)')
     uptime = scalar('time() - min(node_boot_time_seconds)')
 
