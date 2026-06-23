@@ -141,6 +141,15 @@ data:
             "apps_healthy": round(scalar('sum(argocd_app_info{health_status="Healthy"})')),
         }
 
+    # Services manifest — the GitOps apps ArgoCD manages (one series per app).
+    # `root` is the app-of-apps bootstrap, not a service; drop it.
+    services = sorted(
+        {r.get("metric", {}).get("name", "") for r in query("argocd_app_info")}
+        - {"", "root"}
+    )
+    if services:
+        snapshot["services"] = services
+
     body = json.dumps(snapshot).encode()
     req = urllib.request.Request(
         INGEST,
