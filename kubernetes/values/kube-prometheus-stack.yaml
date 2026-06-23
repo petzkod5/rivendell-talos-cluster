@@ -57,6 +57,14 @@ grafana:
     userKey: admin-user
     passwordKey: admin-password
 
+  # Authentik OIDC client id/secret, loaded as Grafana env vars
+  # (GF_AUTH_GENERIC_OAUTH_CLIENT_ID / _SECRET — which override the matching
+  # grafana.ini settings). Created out-of-band; required by auth.generic_oauth below:
+  #   kubectl create secret generic grafana-oidc -n monitoring \
+  #     --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_ID=<id> \
+  #     --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=<secret>
+  envFromSecret: grafana-oidc
+
   # Clean up the stale "Loki" (capital-L) datasource from the initial naming.
   # Cannot put "loki" (lowercase) here too: this block renders into
   # datasources.yaml while additionalDataSources renders into datasource.yaml
@@ -85,14 +93,11 @@ grafana:
       allow_sign_up: false
     auth:
       disable_login_form: false
-    # Authentik OIDC — enable after creating an Authentik OIDC provider for Grafana
-    # and creating the grafana-oidc secret in the monitoring namespace:
-    #   kubectl create secret generic grafana-oidc -n monitoring \
-    #     --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_ID=<id> \
-    #     --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=<secret>
-    # Then set auth.generic_oauth.enabled: true and add envFromSecret: grafana-oidc
+    # Authentik OIDC. Client id/secret come from the grafana-oidc secret (see
+    # envFromSecret above). The Authentik provider's redirect URI must be
+    # http://grafana.home.local/login/generic_oauth.
     auth.generic_oauth:
-      enabled: false
+      enabled: true
       name: Authentik
       allow_sign_up: true
       scopes: openid profile email
