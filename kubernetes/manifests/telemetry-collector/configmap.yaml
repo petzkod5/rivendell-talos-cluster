@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telemetry-collector
+  namespace: telemetry
+data:
+  # Queries Prometheus for a curated, sanitized fleet snapshot and POSTs it to
+  # the petzko-edge Worker. Python stdlib only (no deps → stock python image, no
+  # custom build). Sanitization happens here (the trust boundary): only node
+  # names + aggregates leave the cluster — never IPs, PVC names, or secrets.
+  collect.py: |
+    import json, os, re, time, urllib.parse, urllib.request
+
+    PROM = os.environ["PROM_URL"].rstrip("/")
+    INGEST = os.environ["INGEST_URL"]
+    TOKEN = os.environ["TOKEN"]
+    CLUSTER_ID = os.environ.get("CLUSTER_ID", "rivendell")
+    ROLE = os.environ.get("ROLE", "primary")
+    TALOS_VERSION_ENV = os.environ.get("TALOS_VERSION", "")
+
+    def query(expr):
+        url = PROM + "/api/v1/query?query=" + urllib.parse.quote(expr)
+        with urllib.request.urlopen(url, timeout=10) as r:
+            data = json.load(r)
+        return data.get("data", {}).get("result", [])
+
+    def scalar(expr, default=0.0):
+        res = query(expr)
+        if not res:
+            return default
+        try:
+            return float(res[0]["value"][1])
+        except (KeyError, IndexError, ValueError):
+            return default
+
+    def by_label(expr, label):
+        out = {}
+        for r in query(expr):
+            key = r.get("metric", {}).get(label)
+            if key is None:
+                continue
+            try:
+                out[key] = float(r["value"][1])
+            except (KeyError, IndexError, ValueError):
+                pass
+        return out
+
+    # ── Cluster + workload aggregates ──
+    nodes_ready = scalar('sum(kube_node_status_condition{condition="Ready",status="true"})')
+    nodes_total = scalar('count(kube_node_info)')
+    cpu_used = scalar('sum(rate(node_cpu_seconds_total{mode!="idle"}[2m]))')
+    cpu_total = scalar('count(count by(cpu,instance)(node_cpu_seconds_total))')
+    mem_used = scalar('sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)')
+    mem_total = scalar('sum(node_memory_MemTotal_bytes)')
+    pods_running = scalar('sum(kube_pod_status_phase{phase="Running"})')
+    pods_total = scalar('count(kube_pod_info)')
+    namespaces = scalar('count(kube_namespace_labels)')
+    uptime = scalar('time() - min(node_boot_time_seconds)')
+
+    # k8s + talos version from node info (os_image looks like "Talos (v1.8.1)")
+    info = query('kube_node_info')
+    k8s_version = info[0]["metric"].get("kubelet_version", "") if info else ""
+    talos_version = TALOS_VERSION_ENV
+    if not talos_version and info:
+        m = re.search(r"v\d+\.\d+\.\d+", info[0]["metric"].get("os_image", ""))
+        talos_version = m.group(0) if m else ""
+
+    # ── Per-node (map node-exporter instance -> node name; never emit IPs) ──
+    inst_to_node = {
+        r["metric"].get("instance"): r["metric"].get("nodename")
+        for r in query("node_uname_info")
+    }
+    cpu_by = by_label(
+        '100*(1 - avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[2m])))',
+        "instance",
+    )
+    mem_by = by_label(
+        "100*(1 - (node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes))",
+        "instance",
+    )
+    ready_by = {}
+    for r in query('kube_node_status_condition{condition="Ready",status="true"}'):
+        node = r.get("metric", {}).get("node")
+        if node:
+            try:
+                ready_by[node] = float(r["value"][1]) >= 1
+            except (KeyError, IndexError, ValueError):
+                pass
+
+    nodes = []
+    for inst, name in inst_to_node.items():
+        if not name:
+            continue
+        nodes.append({
+            "name": name,
+            "cpu_pct": round(cpu_by.get(inst, 0.0)),
+            "mem_pct": round(mem_by.get(inst, 0.0)),
+            "ready": ready_by.get(name, True),
+        })
+
+    snapshot = {
+        "cluster_id": CLUSTER_ID,
+        "role": ROLE,
+        "generated_at": int(time.time() * 1000),
+        "cluster": {
+            "k8s_version": k8s_version,
+            "talos_version": talos_version,
+            "uptime_seconds": round(uptime),
+            "nodes_ready": round(nodes_ready),
+            "nodes_total": round(nodes_total),
+        },
+        "resources": {
+            "cpu_used_cores": round(cpu_used, 2),
+            "cpu_total_cores": round(cpu_total),
+            "mem_used_bytes": round(mem_used),
+            "mem_total_bytes": round(mem_total),
+        },
+        "workloads": {
+            "pods_running": round(pods_running),
+            "pods_total": round(pods_total),
+            "namespaces": round(namespaces),
+        },
+        "nodes": nodes,
+    }
+
+    # Storage (Longhorn) — optional; included only if the metrics are scraped.
+    st_total = scalar("sum(longhorn_volume_capacity_bytes)", default=-1)
+    st_used = scalar("sum(longhorn_volume_actual_size_bytes)", default=-1)
+    if st_total > 0:
+        snapshot["resources"]["storage_used_bytes"] = round(max(0, st_used))
+        snapshot["resources"]["storage_total_bytes"] = round(st_total)
+
+    # ArgoCD — optional; included only if its ServiceMonitor is enabled.
+    ac_total = scalar("sum(argocd_app_info)", default=-1)
+    if ac_total >= 0:
+        snapshot["argocd"] = {
+            "apps_synced": round(scalar('sum(argocd_app_info{sync_status="Synced"})')),
+            "apps_total": round(ac_total),
+            "apps_healthy": round(scalar('sum(argocd_app_info{health_status="Healthy"})')),
+        }
+
+    body = json.dumps(snapshot).encode()
+    req = urllib.request.Request(
+        INGEST,
+        data=body,
+        method="POST",
+        headers={"content-type": "application/json", "authorization": "Bearer " + TOKEN},
+    )
+    with urllib.request.urlopen(req, timeout=10) as r:
+        print("ingest", r.status, "nodes", len(nodes), "pods", snapshot["workloads"]["pods_running"])

@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: telemetry-collector
+  namespace: telemetry
+spec:
+  # Every minute — the edge caches reads for 30s and the site polls every 20s,
+  # so ~60–90s end-to-end freshness. (Sub-minute would need a Deployment loop.)
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 60
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: telemetry-collector
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: collector
+              image: python:3.12-slim
+              command: ["python", "/scripts/collect.py"]
+              env:
+                # In-cluster Prometheus (kube-prometheus-stack release in `monitoring`).
+                - name: PROM_URL
+                  value: http://kube-prometheus-stack-prometheus.monitoring:9090
+                # Public edge ingest endpoint.
+                - name: INGEST_URL
+                  value: https://petzko.sh/api/telemetry/ingest
+                - name: CLUSTER_ID
+                  value: rivendell
+                - name: ROLE
+                  value: primary
+                # Keep any incidental writes off the read-only root FS.
+                - name: HOME
+                  value: /tmp
+                - name: TMPDIR
+                  value: /tmp
+                # Per-cluster ingest token — created out-of-band:
+                #   kubectl create secret generic telemetry-collector -n telemetry \
+                #     --from-literal=token=<token>
+                # The same token is one entry in the Worker's TELEMETRY_TOKENS map.
+                - name: TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: telemetry-collector
+                      key: token
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 250m
+                  memory: 128Mi
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: scripts
+              configMap:
+                name: telemetry-collector
+            - name: tmp
+              emptyDir: {}
