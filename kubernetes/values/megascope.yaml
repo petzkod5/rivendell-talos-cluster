@@ -1,0 +1,10 @@
+# megascope — auto-discovering cluster portal (github.com/petzkod5/megascope).
+# The chart can create its own HTTPRoute, but it omits group/kind/weight on
+# backendRefs, which the Gateway API webhook defaults in and ArgoCD then reports
+# as drift. So we disable it here and ship a convention-correct raw HTTPRoute in
+# kubernetes/manifests/megascope (internal `web` listener, scope.home.local).
+config:
+  clusterName: rivendell
+
+httproute:
+  enabled: false

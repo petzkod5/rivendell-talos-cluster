@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: megascope-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+  finalizers:
+    - resources-finalizer.argocd.io
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
+    targetRevision: HEAD
+    path: kubernetes/manifests/megascope
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: megascope
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
