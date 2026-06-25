@@ -17,3 +17,11 @@ podSecurityContext:
   runAsUser: 65532
   runAsGroup: 65532
   fsGroup: 65532
+
+# 0.3.0 custom-links persistence: PVC holds links.json so user-added links
+# (apps not backed by an in-cluster HTTPRoute) survive restarts.
+persistence:
+  enabled: true
+  storageClass: local-path
+  size: 64Mi
+  accessMode: ReadWriteOnce
