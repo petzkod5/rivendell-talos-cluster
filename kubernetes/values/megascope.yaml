@@ -8,3 +8,12 @@ config:
 
 httproute:
   enabled: false
+
+# The chart's distroless image declares `USER nonroot` (a name, not a UID) while
+# its default podSecurityContext sets runAsNonRoot without a numeric runAsUser,
+# so the kubelet can't verify non-root and fails with CreateContainerConfigError.
+# Pin distroless's nonroot UID/GID (65532); deep-merges with the chart defaults.
+podSecurityContext:
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
