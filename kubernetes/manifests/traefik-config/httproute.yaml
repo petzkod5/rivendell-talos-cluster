@@ -3,6 +3,10 @@ kind: HTTPRoute
 metadata:
   name: traefik-dashboard
   namespace: traefik
+  annotations:
+    app.megascope.io/name: Traefik
+    app.megascope.io/group: Networking
+    app.megascope.io/icon: network
 spec:
   parentRefs:
     - group: gateway.networking.k8s.io

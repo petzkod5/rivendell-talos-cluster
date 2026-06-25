@@ -3,6 +3,10 @@ kind: HTTPRoute
 metadata:
   name: authentik
   namespace: authentik
+  annotations:
+    app.megascope.io/name: Authentik
+    app.megascope.io/group: Security
+    app.megascope.io/icon: key-round
 spec:
   parentRefs:
     - group: gateway.networking.k8s.io

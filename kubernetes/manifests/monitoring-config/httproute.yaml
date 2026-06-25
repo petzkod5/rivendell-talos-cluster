@@ -3,6 +3,10 @@ kind: HTTPRoute
 metadata:
   name: grafana
   namespace: monitoring
+  annotations:
+    app.megascope.io/name: Grafana
+    app.megascope.io/group: Monitoring
+    app.megascope.io/icon: chart-spline
 spec:
   parentRefs:
     - group: gateway.networking.k8s.io

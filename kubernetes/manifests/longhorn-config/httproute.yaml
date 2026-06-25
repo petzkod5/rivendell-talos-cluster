@@ -3,6 +3,10 @@ kind: HTTPRoute
 metadata:
   name: longhorn
   namespace: longhorn-system
+  annotations:
+    app.megascope.io/name: Longhorn
+    app.megascope.io/group: Storage
+    app.megascope.io/icon: hard-drive
 spec:
   parentRefs:
     - group: gateway.networking.k8s.io
