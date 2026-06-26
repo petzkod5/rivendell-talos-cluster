@@ -156,7 +156,7 @@ syncPolicy:
 | `authentik-secrets` | `authentik` | `AUTHENTIK_SECRET_KEY`, `postgresql-password` | Authentik + PostgreSQL |
 | `cloudflare-api-token` | `cert-manager` | `api-token` | cert-manager DNS-01 challenges |
 | `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | DDNS A record updates |
-| `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `HERMES_DASHBOARD_BASIC_AUTH_USERNAME`, `HERMES_DASHBOARD_BASIC_AUTH_PASSWORD`, `HERMES_DASHBOARD_BASIC_AUTH_SECRET` | Hermes LLM provider key + API-server bearer token + dashboard basic-auth |
+| `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `HERMES_DASHBOARD_BASIC_AUTH_USERNAME`, `HERMES_DASHBOARD_BASIC_AUTH_PASSWORD`, `HERMES_DASHBOARD_BASIC_AUTH_SECRET`, `PHOTON_ALLOWED_USERS` | Hermes LLM provider key + API-server bearer token + dashboard basic-auth + Photon iMessage allowlist (E.164, comma-separated) |
 
 ## CoreDNS
 

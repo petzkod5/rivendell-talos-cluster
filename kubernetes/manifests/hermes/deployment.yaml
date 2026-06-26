@@ -43,6 +43,55 @@ spec:
               mountPath: /opt/data
             - name: seed
               mountPath: /seed
+        # Install + persist the Photon Node sidecar deps (spectrum-ts) onto the
+        # PVC, since /opt/hermes is read-only/ephemeral in the image. Idempotent:
+        # reinstalls only when the sidecar's package-lock.json changes. Never
+        # fails the pod — on a failed install Photon is simply unavailable that
+        # boot while the rest of the gateway (API/dashboard/model) stays up.
+        - name: photon-sidecar
+          image: docker.io/nousresearch/hermes-agent:v2026.6.19
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              SIDE=/opt/hermes/plugins/platforms/photon/sidecar
+              NM="$SIDE/node_modules"
+              LOCK="$SIDE/package-lock.json"
+              HASH="$(sha256sum "$LOCK" | awk '{print $1}')"
+              if [ -f "$NM/.lockhash" ] && [ "$(cat "$NM/.lockhash" 2>/dev/null)" = "$HASH" ] && [ -d "$NM/spectrum-ts" ]; then
+                echo "[photon-init] sidecar deps current"
+              else
+                echo "[photon-init] installing sidecar deps (spectrum-ts)"
+                TMP="$(mktemp -d)"
+                cp "$SIDE/package.json" "$LOCK" "$TMP/"
+                if ( cd "$TMP" && HOME=/tmp npm_config_cache=/tmp/.npm npm ci --ignore-scripts --no-audit --no-fund ); then
+                  find "$NM" -mindepth 1 -delete 2>/dev/null || true
+                  cp -a "$TMP/node_modules/." "$NM/"
+                  printf '%s' "$HASH" > "$NM/.lockhash"
+                  echo "[photon-init] sidecar deps installed"
+                elif [ -d "$NM/spectrum-ts" ]; then
+                  echo "[photon-init] npm ci failed; keeping existing deps"
+                else
+                  echo "[photon-init] npm ci failed and no existing deps — photon unavailable this boot"
+                fi
+              fi
+              chown -R 10000:10000 "$NM" 2>/dev/null || true
+              # PHOTON_ALLOWED_USERS / PHOTON_ALLOW_ALL_USERS are managed via the
+              # hermes-secrets Secret. The user .env loads with override=True
+              # (hermes_cli/env_loader.py:238) and would shadow the Secret, so
+              # strip those keys from .env. Leaves PHOTON_PROJECT_ID/SECRET/
+              # HOME_CHANNEL intact.
+              if [ -f /opt/data/.env ]; then
+                sed -i '/^[[:space:]]*PHOTON_ALLOWED_USERS[[:space:]]*=/d; /^[[:space:]]*PHOTON_ALLOW_ALL_USERS[[:space:]]*=/d' /opt/data/.env
+                chown 10000:10000 /opt/data/.env 2>/dev/null || true
+              fi
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: data
+              mountPath: /opt/hermes/plugins/platforms/photon/sidecar/node_modules
+              subPath: photon-sidecar-node-modules
       containers:
         - name: hermes
           image: docker.io/nousresearch/hermes-agent:v2026.6.19
@@ -110,6 +159,9 @@ spec:
               mountPath: /opt/data
             - name: dshm
               mountPath: /dev/shm
+            - name: data
+              mountPath: /opt/hermes/plugins/platforms/photon/sidecar/node_modules
+              subPath: photon-sidecar-node-modules
       volumes:
         - name: data
           persistentVolumeClaim:
