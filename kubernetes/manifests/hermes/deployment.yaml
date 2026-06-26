@@ -122,6 +122,8 @@ spec:
               value: 0.0.0.0
             - name: HERMES_DASHBOARD_PORT
               value: "9119"
+            - name: HERMES_DASHBOARD_INSECURE
+              value: "1"
           ports:
             - name: api
               containerPort: 8642
