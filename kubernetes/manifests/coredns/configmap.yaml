@@ -23,6 +23,8 @@ data:
             192.168.0.225 grafana.home.local
             192.168.0.225 petzko.home.local
             192.168.0.225 scope.home.local
+            192.168.0.225 hermes.home.local
+            192.168.0.225 hermes-api.home.local
             fallthrough
         }
         kubernetes cluster.local in-addr.arpa ip6.arpa {

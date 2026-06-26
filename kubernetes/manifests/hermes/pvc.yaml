@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hermes-data
+  namespace: hermes
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # local-path (node-local): the cluster default for lightweight state. Pinned to
+  # talos-ca6-8kw via the Deployment nodeSelector so the volume and pod stay
+  # co-located. Longhorn is avoided here (default 3-replica on a 2-node cluster
+  # cannot schedule).
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi

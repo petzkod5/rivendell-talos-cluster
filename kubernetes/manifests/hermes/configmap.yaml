@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hermes-config
+  namespace: hermes
+data:
+  # Seeded into the data volume by the seed-config initContainer on first boot
+  # only (never clobbers an existing config). Hermes/dashboard own config.yaml
+  # afterwards, so model/tool changes made in the UI persist across restarts.
+  config.yaml: |
+    model:
+      provider: openrouter
+      default: anthropic/claude-sonnet-4.6
+      base_url: https://openrouter.ai/api/v1
+      api_mode: chat_completions
+    terminal:
+      backend: local
+      cwd: /opt/data/workspace
+    approvals:
+      mode: smart
+      cron_mode: deny
+    memory:
+      memory_enabled: true
+      user_profile_enabled: true
+    sessions:
+      auto_prune: true

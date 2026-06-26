@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes
+  namespace: hermes
+  labels:
+    app: hermes
+spec:
+  replicas: 1
+  # Single-writer SQLite state on an RWO volume — never run two pods at once.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: hermes
+  template:
+    metadata:
+      labels:
+        app: hermes
+    spec:
+      # Only the control-plane node has the RAM/disk headroom; the HP thin-client
+      # worker is too small. local-path PVC binds wherever the pod lands.
+      nodeSelector:
+        kubernetes.io/hostname: talos-ca6-8kw
+      # No pod-level runAsNonRoot: the image's s6-overlay /init starts as root to
+      # chown the data volume, then drops every service to UID 10000. Enforcing
+      # non-root at the k8s layer breaks startup. Namespace runs baseline PSS.
+      initContainers:
+        # Seed config.yaml into the data volume on first boot only. `cp` is guarded
+        # by a test, so dashboard/CLI edits to config.yaml survive restarts.
+        - name: seed-config
+          image: docker.io/nousresearch/hermes-agent:v2026.6.19
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /opt/data/config.yaml ]; then
+                cp /seed/config.yaml /opt/data/config.yaml
+                chown 10000:10000 /opt/data/config.yaml
+              fi
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: seed
+              mountPath: /seed
+      containers:
+        - name: hermes
+          image: docker.io/nousresearch/hermes-agent:v2026.6.19
+          # Single supervised process tree: gateway + OpenAI-compatible API server
+          # (8642) + web dashboard (9119), all under s6 with crash auto-restart.
+          args:
+            - gateway
+            - run
+          envFrom:
+            - secretRef:
+                name: hermes-secrets
+          env:
+            - name: HERMES_HOME
+              value: /opt/data
+            - name: HERMES_UID
+              value: "10000"
+            - name: HERMES_GID
+              value: "10000"
+            - name: API_SERVER_ENABLED
+              value: "true"
+            - name: API_SERVER_HOST
+              value: 0.0.0.0
+            - name: API_SERVER_PORT
+              value: "8642"
+            - name: HERMES_DASHBOARD
+              value: "1"
+            - name: HERMES_DASHBOARD_HOST
+              value: 0.0.0.0
+            - name: HERMES_DASHBOARD_PORT
+              value: "9119"
+          ports:
+            - name: api
+              containerPort: 8642
+            - name: dashboard
+              containerPort: 9119
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8642
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8642
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8642
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 250m
+              memory: 768Mi
+            limits:
+              cpu: "2"
+              memory: 3Gi
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: hermes-data
+        - name: seed
+          configMap:
+            name: hermes-config
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
