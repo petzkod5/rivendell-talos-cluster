@@ -11,6 +11,7 @@ This is a Talos Linux Kubernetes homelab cluster managed with GitOps (ArgoCD) an
 - **MetalLB pool:** `192.168.0.225–192.168.0.255`
 - **Ingress:** Traefik v3 using native Kubernetes Gateway API (`HTTPRoute`, not `IngressRoute`)
 - **Auth:** Authentik at `authentik.home.local` — GitHub OAuth upstream, OIDC downstream to ArgoCD and future services. The Hermes dashboard is gated by Authentik forward-auth (domain-level) via Traefik Middleware `hermes/authentik-forwardauth`; the dashboard's own gate is disabled with `HERMES_DASHBOARD_INSECURE=1`, so Authentik is the single login.
+- **Hermes WebUI:** the community UI (`nesquena/hermes-webui`) runs at `hermes-ui.home.local`, gated by the same Authentik forward-auth Middleware `hermes/authentik-forwardauth` (its own auth is disabled, so Authentik is the single gate). It is a co-located second runtime (separate Deployment pinned to the agent's node, sharing the `hermes-data` PVC with `HERMES_HOME=/opt/data`) that reads the agent's `state.db` directly; the agent Deployment is untouched.
 - **TLS:** cert-manager v1.17.2 with Cloudflare DNS-01, wildcard cert `*.petzko.sh` stored in `traefik/petzko-sh-tls`
 - **DDNS:** `favonia/cloudflare-ddns` keeps `petzko.sh` and `*.petzko.sh` A records current
 - **Storage:** Longhorn (replicated) + local-path-provisioner (default StorageClass for lightweight use)

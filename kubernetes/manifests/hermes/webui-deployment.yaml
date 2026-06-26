@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes-webui
+  namespace: hermes
+  labels:
+    app: hermes-webui
+spec:
+  replicas: 1
+  # Shares the agent's RWO local-path PVC; never run two writers at once.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: hermes-webui
+  template:
+    metadata:
+      labels:
+        app: hermes-webui
+    spec:
+      # MUST co-locate with the agent: RWO local-path PVC is mountable only by
+      # pods on the node where it is bound (the agent's node).
+      nodeSelector:
+        kubernetes.io/hostname: talos-ca6-8kw
+      initContainers:
+        # Stage the agent source from the SAME image the agent runs, so the
+        # webui `uv pip install`s a hermes_state/schema that matches state.db.
+        - name: stage-agent-src
+          image: docker.io/nousresearch/hermes-agent:v2026.6.19
+          command:
+            - sh
+            - -c
+            - 'cp -a /opt/hermes/. /agent-src/'
+          volumeMounts:
+            - name: agent-src
+              mountPath: /agent-src
+      containers:
+        - name: hermes-webui
+          image: ghcr.io/nesquena/hermes-webui:latest
+          imagePullPolicy: Always
+          # Provider keys (OPENROUTER_API_KEY, API_SERVER_KEY, …) so webui-run
+          # agent turns use the same providers as the gateway.
+          envFrom:
+            - secretRef:
+                name: hermes-secrets
+          env:
+            - name: HERMES_HOME
+              value: /opt/data
+            - name: HERMES_WEBUI_HOST
+              value: 0.0.0.0
+            - name: HERMES_WEBUI_PORT
+              value: "8787"
+            - name: HERMES_WEBUI_STATE_DIR
+              value: /opt/data/webui
+            # Health/status pills only (no HTTP-only data path exists).
+            - name: HERMES_API_URL
+              value: http://hermes.hermes.svc.cluster.local:8642
+            # Align the dropped-to runtime user with the PVC owner (UID 10000).
+            - name: WANTED_UID
+              value: "10000"
+            - name: WANTED_GID
+              value: "10000"
+            # Force chunked SSE so Traefik never buffers the chat stream.
+            - name: HERMES_WEBUI_SSE_CHUNKED
+              value: "1"
+          ports:
+            - name: webui
+              containerPort: 8787
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8787
+            periodSeconds: 10
+            failureThreshold: 60   # up to ~10 min for first-boot uv install
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8787
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8787
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          volumeMounts:
+            - name: data            # shared agent home (state.db, config, memory)
+              mountPath: /opt/data
+            - name: agent-src       # agent python source for uv pip install
+              mountPath: /opt/hermes
+              readOnly: true
+            - name: app             # /app (server code + venv), seeded each boot
+              mountPath: /app
+            - name: uv-cache
+              mountPath: /uv_cache
+            - name: workspace
+              mountPath: /workspace
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: hermes-data
+        - name: agent-src
+          emptyDir: {}
+        - name: app
+          emptyDir: {}
+        - name: uv-cache
+          emptyDir: {}
+        - name: workspace
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermes-webui
+  namespace: hermes
+  labels:
+    app: hermes-webui
+spec:
+  type: ClusterIP
+  selector:
+    app: hermes-webui
+  ports:
+    - name: webui
+      port: 8787
+      targetPort: 8787
