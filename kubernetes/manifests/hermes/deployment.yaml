@@ -43,6 +43,42 @@ spec:
               mountPath: /opt/data
             - name: seed
               mountPath: /seed
+        - name: seed-ssh-key
+          image: docker.io/nousresearch/hermes-agent:v2026.6.19
+          command:
+            - sh
+            - -c
+            - |
+              install -d -m 700 -o 10000 -g 10000 /opt/data/home/.ssh
+              install -m 600 -o 10000 -g 10000 /ssh-secret/id_ed25519 /opt/data/home/.ssh/id_ed25519
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: ssh-key
+              mountPath: /ssh-secret
+              readOnly: true
+        - name: seed-ssh-config
+          image: docker.io/nousresearch/hermes-agent:v2026.6.19
+          command:
+            - /opt/hermes/.venv/bin/python3
+            - -c
+            - |
+              import os, yaml
+              p = "/opt/data/config.yaml"
+              c = {}
+              if os.path.exists(p):
+                  with open(p) as f:
+                      c = yaml.safe_load(f) or {}
+              t = c.setdefault("terminal", {})
+              t["backend"] = "ssh"
+              t["cwd"] = "/home/hermes/workspace"
+              t["persistent_shell"] = True
+              with open(p, "w") as f:
+                  yaml.safe_dump(c, f, default_flow_style=False, sort_keys=False)
+              os.chown(p, 10000, 10000)
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
         # Install + persist the Photon Node sidecar deps (spectrum-ts) onto the
         # PVC, since /opt/hermes is read-only/ephemeral in the image. Idempotent:
         # reinstalls only when the sidecar's package-lock.json changes. Never
@@ -124,6 +160,20 @@ spec:
               value: "9119"
             - name: HERMES_DASHBOARD_INSECURE
               value: "1"
+            - name: TERMINAL_ENV
+              value: ssh
+            - name: TERMINAL_SSH_HOST
+              value: ubuntu-vm.hermes.svc.cluster.local
+            - name: TERMINAL_SSH_USER
+              value: hermes
+            - name: TERMINAL_SSH_KEY
+              value: /opt/data/home/.ssh/id_ed25519
+            - name: TERMINAL_SSH_PORT
+              value: "22"
+            - name: TERMINAL_SSH_PERSISTENT
+              value: "true"
+            - name: TERMINAL_CWD
+              value: /home/hermes/workspace
           ports:
             - name: api
               containerPort: 8642
@@ -175,3 +225,7 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 1Gi
+        - name: ssh-key
+          secret:
+            secretName: hermes-ssh-key
+            defaultMode: 0400

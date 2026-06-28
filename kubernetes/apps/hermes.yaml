@@ -16,6 +16,15 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: hermes
+  ignoreDifferences:
+    # The Tailscale operator rewrites the egress Service's spec.externalName to a
+    # headless proxy svc in ns tailscale. Don't let selfHeal revert that mutation.
+    - group: ""
+      kind: Service
+      name: ubuntu-vm
+      namespace: hermes
+      jsonPointers:
+        - /spec/externalName
   syncPolicy:
     automated:
       prune: true

@@ -14,8 +14,9 @@ data:
       base_url: https://openrouter.ai/api/v1
       api_mode: chat_completions
     terminal:
-      backend: local
-      cwd: /opt/data/workspace
+      backend: ssh
+      cwd: /home/hermes/workspace
+      persistent_shell: true
     approvals:
       mode: smart
       cron_mode: deny

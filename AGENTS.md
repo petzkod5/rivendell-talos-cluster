@@ -12,6 +12,7 @@ This is a Talos Linux Kubernetes homelab cluster managed with GitOps (ArgoCD) an
 - **Ingress:** Traefik v3 using native Kubernetes Gateway API (`HTTPRoute`, not `IngressRoute`)
 - **Auth:** Authentik at `authentik.home.local` — GitHub OAuth upstream, OIDC downstream to ArgoCD and future services. The Hermes dashboard is gated by Authentik forward-auth (domain-level) via Traefik Middleware `hermes/authentik-forwardauth`; the dashboard's own gate is disabled with `HERMES_DASHBOARD_INSECURE=1`, so Authentik is the single login.
 - **Hermes WebUI:** the community UI (`nesquena/hermes-webui`) runs at `hermes-ui.home.local`, gated by the same Authentik forward-auth Middleware `hermes/authentik-forwardauth` (its own auth is disabled, so Authentik is the single gate). It is a co-located second runtime (separate Deployment pinned to the agent's node, sharing the `hermes-data` PVC with `HERMES_HOME=/opt/data`) that reads the agent's `state.db` directly; the agent Deployment is untouched.
+- **Hermes terminal backend:** **ssh** — the agent runs shell commands on the Ubuntu VM `petzko-ubuntu-vm.pintail-monster.ts.net` as user `hermes` (NOPASSWD sudo), reached via the Tailscale operator egress Service `hermes/ubuntu-vm`. The key comes from Secret `hermes-ssh-key`, placed by the `seed-ssh-key` initContainer at `/opt/data/home/.ssh/id_ed25519` (mode 0600, UID 10000). Configured via `TERMINAL_*` env in the agent Deployment plus `terminal.backend: ssh` in `config.yaml` (the gateway reads env; the dashboard-chat path reads config). A Tailscale policy grant (`tag:k8s` → VM `tcp:22`) authorizes the egress proxy, and ArgoCD `ignoreDifferences` lets the operator keep its `spec.externalName` rewrite on the egress Service.
 - **TLS:** cert-manager v1.17.2 with Cloudflare DNS-01, wildcard cert `*.petzko.sh` stored in `traefik/petzko-sh-tls`
 - **DDNS:** `favonia/cloudflare-ddns` keeps `petzko.sh` and `*.petzko.sh` A records current
 - **Storage:** Longhorn (replicated) + local-path-provisioner (default StorageClass for lightweight use)
@@ -158,6 +159,7 @@ syncPolicy:
 | `cloudflare-api-token` | `cert-manager` | `api-token` | cert-manager DNS-01 challenges |
 | `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | DDNS A record updates |
 | `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `PHOTON_ALLOWED_USERS` | Hermes LLM provider key + API-server bearer token + Photon iMessage allowlist (E.164, comma-separated). Dashboard auth is via Authentik forward-auth (Traefik Middleware `hermes/authentik-forwardauth`), not in-app basic-auth. |
+| `hermes-ssh-key` | `hermes` | `id_ed25519` | SSH key the agent uses for its ssh terminal backend (`hermes@petzko-ubuntu-vm`, NOPASSWD sudo). |
 
 ## CoreDNS
 
