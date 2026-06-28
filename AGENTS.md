@@ -76,7 +76,7 @@ sources:
     helm:
       valueFiles:
         - $values/kubernetes/values/<name>.yaml
-  - repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
+  - repoURL: https://github.com/petzkod5/rivendell-talos-cluster.git
     targetRevision: main
     ref: values
 ```
@@ -84,7 +84,7 @@ sources:
 For local manifests, use directory source:
 ```yaml
 source:
-  repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
+  repoURL: https://github.com/petzkod5/rivendell-talos-cluster.git
   targetRevision: main
   path: kubernetes/manifests/<name>
 ```
@@ -207,7 +207,7 @@ helmfile sync   # installs ArgoCD + applies root Application
 ```
 
 Then in ArgoCD UI:
-1. Add repo credentials (SSH key for `git@github.com:petzkod5/rivendell-talos-cluster.git`)
+1. Add repo credentials (SSH key for `https://github.com/petzkod5/rivendell-talos-cluster.git`)
 2. Sync the `root` Application — ArgoCD installs everything else in wave order
 3. After Authentik is up: configure GitHub OAuth source and create ArgoCD OIDC provider
 4. Patch `argocd-secret` with OIDC client secret

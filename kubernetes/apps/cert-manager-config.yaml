@@ -10,7 +10,7 @@ metadata:
 spec:
   project: cluster-platform
   source:
-    repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
+    repoURL: https://github.com/petzkod5/rivendell-talos-cluster.git
     targetRevision: main
     path: kubernetes/manifests/cert-manager-config
   destination:
