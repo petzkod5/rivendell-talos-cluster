@@ -1,0 +1,102 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v4.2.2
+
+      - name: Install validation tools
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz -o /tmp/gitleaks.tar.gz
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+
+          curl -sSfL https://github.com/helmfile/helmfile/releases/download/v1.6.0/helmfile_1.6.0_linux_amd64.tar.gz -o /tmp/helmfile.tar.gz
+          tar -xzf /tmp/helmfile.tar.gz -C /tmp helmfile
+          sudo install -m 0755 /tmp/helmfile /usr/local/bin/helmfile
+
+          curl -sSfL https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz -o /tmp/kubeconform.tar.gz
+          tar -xzf /tmp/kubeconform.tar.gz -C /tmp kubeconform
+          sudo install -m 0755 /tmp/kubeconform /usr/local/bin/kubeconform
+
+          curl -sSfL https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz -o /tmp/kube-linter.tar.gz
+          tar -xzf /tmp/kube-linter.tar.gz -C /tmp kube-linter
+          sudo install -m 0755 /tmp/kube-linter /usr/local/bin/kube-linter
+
+          python3 -m pip install --user --quiet pyyaml
+
+          gitleaks version
+          helm version --short
+          helmfile --version
+          kubeconform -v
+          kube-linter version
+
+      - name: Parse all YAML files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          import yaml
+
+          checked = 0
+          for path in pathlib.Path('.').rglob('*.yaml'):
+              if '.git' in path.parts:
+                  continue
+              list(yaml.safe_load_all(path.read_text()))
+              checked += 1
+          print(f'YAML_PARSE_OK files={checked}')
+          PY
+
+      - name: Scan for committed secrets
+        run: gitleaks detect --source . --no-git --redact --verbose
+
+      - name: Validate Renovate config
+        run: |
+          docker run --rm --user 0:0 \
+            -v "$PWD":/repo:ro \
+            -w /repo \
+            ghcr.io/renovatebot/renovate:43 \
+            renovate-config-validator renovate.json
+
+      - name: Lint Helmfile bootstrap
+        run: helmfile -f kubernetes/helmfile.yaml lint
+
+      - name: Validate Kubernetes built-in schemas
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s globstar nullglob
+          files=(kubernetes/manifests/**/*.yaml kubernetes/apps/*.yaml)
+          kubeconform \
+            -summary \
+            -ignore-missing-schemas \
+            -strict \
+            -kubernetes-version 1.34.0 \
+            "${files[@]}"
+
+      - name: Block mutable latest image tags
+        run: |
+          kube-linter lint kubernetes/manifests kubernetes/apps \
+            --do-not-auto-add-defaults \
+            --include latest-tag

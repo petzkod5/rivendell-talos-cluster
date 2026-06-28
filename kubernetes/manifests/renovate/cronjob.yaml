@@ -32,7 +32,7 @@ spec:
               image: ghcr.io/renovatebot/renovate:43
               # Repos to process (autodiscover off — explicit list).
               args:
-                - petzkod5/petzko.sh
+                - petzkod5/rivendell-talos-cluster
               env:
                 - name: RENOVATE_PLATFORM
                   value: github
