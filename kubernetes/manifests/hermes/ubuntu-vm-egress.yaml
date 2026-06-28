@@ -12,7 +12,9 @@ spec:
   type: ExternalName
   externalName: placeholder   # operator overwrites this
   ports:
+    # 2222 = the VM's real sshd (added via an ssh.socket drop-in). Tailscale SSH
+    # intercepts tailnet :22, so key-based auth must target a non-22 port.
     - name: ssh
-      port: 22
+      port: 2222
       protocol: TCP
-      targetPort: 22
+      targetPort: 2222

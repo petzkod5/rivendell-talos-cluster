@@ -169,7 +169,7 @@ spec:
             - name: TERMINAL_SSH_KEY
               value: /opt/data/home/.ssh/id_ed25519
             - name: TERMINAL_SSH_PORT
-              value: "22"
+              value: "2222"
             - name: TERMINAL_SSH_PERSISTENT
               value: "true"
             - name: TERMINAL_CWD
