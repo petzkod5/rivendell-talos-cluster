@@ -3,6 +3,8 @@ kind: CronJob
 metadata:
   name: renovate
   namespace: renovate
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Renovate containerbase installs runtime tools while updating lockfiles, so the image filesystem must remain writable."
 spec:
   # Every hour. Renovate opens/updates PRs against the configured repos; CI
   # validates them and low-risk ones automerge (Renovate self-merges green PRs

@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
-    targetRevision: HEAD
+    targetRevision: main
     path: kubernetes/apps
   destination:
     server: https://kubernetes.default.svc

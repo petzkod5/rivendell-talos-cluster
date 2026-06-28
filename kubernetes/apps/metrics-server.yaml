@@ -8,7 +8,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.io
 spec:
-  project: default
+  project: cluster-platform
   source:
     repoURL: https://kubernetes-sigs.github.io/metrics-server/
     chart: metrics-server

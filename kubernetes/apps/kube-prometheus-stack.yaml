@@ -8,7 +8,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.io
 spec:
-  project: default
+  project: observability
   sources:
     - repoURL: https://prometheus-community.github.io/helm-charts
       chart: kube-prometheus-stack
@@ -19,7 +19,7 @@ spec:
         # CRDs are large — skip schema validation to avoid timeout
         skipCrds: false
     - repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
-      targetRevision: HEAD
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

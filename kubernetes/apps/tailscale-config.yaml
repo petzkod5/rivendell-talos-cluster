@@ -8,10 +8,10 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.io
 spec:
-  project: default
+  project: networking
   source:
     repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
-    targetRevision: HEAD
+    targetRevision: main
     path: kubernetes/manifests/tailscale-config
   destination:
     server: https://kubernetes.default.svc

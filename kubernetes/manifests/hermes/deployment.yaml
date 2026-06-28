@@ -3,6 +3,11 @@ kind: Deployment
 metadata:
   name: hermes
   namespace: hermes
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Hermes persists and mutates runtime state under mounted paths; read-only root filesystem hardening needs image-level work first."
+    ignore-check.kube-linter.io/run-as-non-root: "The image's s6-overlay /init starts as root to chown the PVC, then drops services to UID 10000."
+    ignore-check.kube-linter.io/unset-cpu-requirements: "Init containers are short-lived setup tasks; steady-state container resources are set."
+    ignore-check.kube-linter.io/unset-memory-requirements: "Init containers are short-lived setup tasks; steady-state container resources are set."
   labels:
     app: hermes
 spec:

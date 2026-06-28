@@ -8,7 +8,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.io
 spec:
-  project: default
+  project: argocd-system
   sources:
     - repoURL: https://argoproj.github.io/argo-helm
       chart: argo-cd
@@ -17,7 +17,7 @@ spec:
         valueFiles:
           - $values/kubernetes/values/argocd.yaml
     - repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
-      targetRevision: HEAD
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

@@ -8,10 +8,10 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.io
 spec:
-  project: default
+  project: workloads
   source:
     repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
-    targetRevision: HEAD
+    targetRevision: main
     path: kubernetes/manifests/authentik-config
   destination:
     server: https://kubernetes.default.svc

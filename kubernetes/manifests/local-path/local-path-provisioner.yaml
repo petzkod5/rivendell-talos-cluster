@@ -84,6 +84,11 @@ kind: Deployment
 metadata:
   name: local-path-provisioner
   namespace: local-path-storage
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Upstream local-path provisioner manages host paths and helper pods; hardening will be handled separately from policy rollout."
+    ignore-check.kube-linter.io/run-as-non-root: "Upstream local-path provisioner image/runtime is kept as provided for compatibility with local storage provisioning."
+    ignore-check.kube-linter.io/unset-cpu-requirements: "Small storage controller kept unmodified from upstream manifest until resource sizing is measured."
+    ignore-check.kube-linter.io/unset-memory-requirements: "Small storage controller kept unmodified from upstream manifest until resource sizing is measured."
 spec:
   replicas: 1
   selector:

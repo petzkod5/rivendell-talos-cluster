@@ -1,0 +1,5 @@
+checks:
+  # Keep the default policy set enabled and document intentional exceptions with
+  # per-object ignore-check.kube-linter.io/<check> annotations in manifests.
+  doNotAutoAddDefaults: false
+  addAllBuiltIn: false

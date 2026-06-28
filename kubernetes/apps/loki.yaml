@@ -8,7 +8,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.io
 spec:
-  project: default
+  project: observability
   sources:
     - repoURL: https://grafana.github.io/helm-charts
       chart: loki
@@ -17,7 +17,7 @@ spec:
         valueFiles:
           - $values/kubernetes/values/loki.yaml
     - repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
-      targetRevision: HEAD
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc

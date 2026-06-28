@@ -77,7 +77,7 @@ sources:
       valueFiles:
         - $values/kubernetes/values/<name>.yaml
   - repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
-    targetRevision: HEAD
+    targetRevision: main
     ref: values
 ```
 
@@ -85,7 +85,7 @@ For local manifests, use directory source:
 ```yaml
 source:
   repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
-  targetRevision: HEAD
+  targetRevision: main
   path: kubernetes/manifests/<name>
 ```
 

@@ -4,6 +4,7 @@ metadata:
   name: traefik-external
   namespace: traefik
   annotations:
+    ignore-check.kube-linter.io/dangling-service: "Targets the Helm-managed Traefik deployment that is outside this raw manifest directory."
     metallb.universe.tf/loadBalancerIPs: "192.168.0.226"
 spec:
   type: LoadBalancer
