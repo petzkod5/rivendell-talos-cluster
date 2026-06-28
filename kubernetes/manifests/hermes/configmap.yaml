@@ -17,6 +17,10 @@ data:
       backend: ssh
       cwd: /home/hermes/workspace
       persistent_shell: true
+      ssh_host: ubuntu-vm.hermes.svc.cluster.local
+      ssh_user: hermes
+      ssh_port: 2222
+      ssh_key: /opt/data/home/.ssh/id_ed25519
     approvals:
       mode: smart
       cron_mode: deny
