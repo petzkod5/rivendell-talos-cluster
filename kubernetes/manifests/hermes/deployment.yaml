@@ -178,6 +178,14 @@ spec:
               value: "true"
             - name: TERMINAL_CWD
               value: /home/hermes/workspace
+            # Image Dockerfile sets HERMES_WRITE_SAFE_ROOT=/opt/data, which
+            # confines write_file to the local PVC. The ssh terminal backend
+            # writes to the remote VM (/home/hermes/*), so that guard denies
+            # every remote write ("protected system/credential file"). Empty
+            # disables the safe-root guard (the credential-by-name deny list
+            # still applies; the agent has NOPASSWD sudo on the VM regardless).
+            - name: HERMES_WRITE_SAFE_ROOT
+              value: ""
           ports:
             - name: api
               containerPort: 8642
