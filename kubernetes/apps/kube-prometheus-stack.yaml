@@ -18,7 +18,7 @@ spec:
           - $values/kubernetes/values/kube-prometheus-stack.yaml
         # CRDs are large — skip schema validation to avoid timeout
         skipCrds: false
-    - repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
+    - repoURL: https://github.com/petzkod5/rivendell-talos-cluster.git
       targetRevision: main
       ref: values
   destination:

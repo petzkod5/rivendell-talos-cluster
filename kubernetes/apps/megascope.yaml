@@ -16,7 +16,7 @@ spec:
       helm:
         valueFiles:
           - $values/kubernetes/values/megascope.yaml
-    - repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
+    - repoURL: https://github.com/petzkod5/rivendell-talos-cluster.git
       targetRevision: main
       ref: values
   destination:
