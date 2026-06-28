@@ -120,6 +120,9 @@ spec:
   destinations:
     - server: https://kubernetes.default.svc
       namespace: monitoring
+    # kube-prometheus-stack ships a CoreDNS metrics Service into kube-system
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
