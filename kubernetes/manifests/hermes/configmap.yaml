@@ -13,6 +13,16 @@ data:
       default: nvidia/nemotron-3-nano-30b-a3b:free
       base_url: https://openrouter.ai/api/v1
       api_mode: chat_completions
+    custom_providers:
+      # Local Ollama on petzko-pc-01, reached via the hermes/ollama Tailscale
+      # egress. Selectable in the model picker as custom:ollama; the model.*
+      # default above is unchanged.
+      - name: ollama
+        base_url: http://ollama.hermes.svc.cluster.local:11434/v1
+        api_key: ollama
+        models:
+          "qwen2.5-coder:14b":
+            context_length: 32768
     terminal:
       backend: ssh
       cwd: /home/hermes/workspace
