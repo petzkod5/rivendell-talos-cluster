@@ -36,8 +36,8 @@ spec:
               mountPath: /agent-src
       containers:
         - name: hermes-webui
-          image: ghcr.io/nesquena/hermes-webui:latest
-          imagePullPolicy: Always
+          image: ghcr.io/nesquena/hermes-webui@sha256:99f317e31345350eabe5673d712bc38b9f471d2f51614cdeee56aad9a2798a44
+          imagePullPolicy: IfNotPresent
           # Provider keys (OPENROUTER_API_KEY, API_SERVER_KEY, …) so webui-run
           # agent turns use the same providers as the gateway.
           envFrom:
