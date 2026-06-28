@@ -15,8 +15,12 @@ configs:
         - openid
         - profile
         - email
+        - groups
   rbac:
-    policy.default: role:admin
+    policy.default: role:readonly
+    scopes: '[groups]'
+    policy.csv: |
+      g, authentik Admins, role:admin
 
 # Expose component metrics + ServiceMonitors so Prometheus scrapes ArgoCD.
 # kube-prometheus-stack scrapes all ServiceMonitors cluster-wide
