@@ -52,8 +52,8 @@
       "matchStrings": [
         "repoURL:\\s*(?<registryUrl>ghcr\\.io/[^\\n]+)\\s*\\n\\s*chart:\\s*(?<depName>[^\\s]+)\\s*\\n\\s*targetRevision:\\s*(?<currentValue>[^\\s]+)"
       ],
-      "datasourceTemplate": "helm",
-      "registryUrlTemplate": "oci://{{{registryUrl}}}"
+      "datasourceTemplate": "docker",
+      "packageNameTemplate": "{{{registryUrl}}}/{{{depName}}}"
     }
   ],
   "packageRules": [
@@ -76,6 +76,16 @@
       "description": "Do not automerge Helm chart updates until the workflow has proven stable",
       "matchDatasources": [
         "helm"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "Treat the OCI-hosted megascope chart like other Helm charts (no automerge)",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "ghcr.io/petzkod5/charts/megascope"
       ],
       "automerge": false
     },

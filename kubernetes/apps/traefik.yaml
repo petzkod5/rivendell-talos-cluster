@@ -16,7 +16,7 @@ spec:
       helm:
         valueFiles:
           - $values/kubernetes/values/traefik.yaml
-    - repoURL: git@github.com:petzkod5/rivendell-talos-cluster.git
+    - repoURL: https://github.com/petzkod5/rivendell-talos-cluster.git
       targetRevision: main
       ref: values
   destination:
@@ -29,3 +29,11 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  ignoreDifferences:
+    # The Gateway API admission controller defaults group/kind on
+    # certificateRefs and adds tls.mode=Terminate, which the chart does not
+    # render. Ignore those server-populated fields to prevent perpetual drift.
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      jsonPointers:
+        - /spec/listeners

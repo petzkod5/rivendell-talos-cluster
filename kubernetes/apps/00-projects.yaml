@@ -8,7 +8,7 @@ metadata:
 spec:
   description: ArgoCD control plane and repository root application
   sourceRepos:
-    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://github.com/petzkod5/rivendell-talos-cluster.git
     - https://argoproj.github.io/argo-helm
   destinations:
     - server: https://kubernetes.default.svc
@@ -30,7 +30,7 @@ metadata:
 spec:
   description: Cluster-wide platform services and controllers
   sourceRepos:
-    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://github.com/petzkod5/rivendell-talos-cluster.git
     - https://wiremind.github.io/wiremind-helm-charts
     - https://kubernetes-sigs.github.io/metrics-server/
     - https://charts.jetstack.io
@@ -60,7 +60,7 @@ metadata:
 spec:
   description: Storage provisioners and storage management
   sourceRepos:
-    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://github.com/petzkod5/rivendell-talos-cluster.git
     - https://charts.longhorn.io
   destinations:
     - server: https://kubernetes.default.svc
@@ -84,7 +84,7 @@ metadata:
 spec:
   description: Ingress, load-balancing, DNS, and tailnet connectivity
   sourceRepos:
-    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://github.com/petzkod5/rivendell-talos-cluster.git
     - https://metallb.github.io/metallb
     - https://traefik.github.io/charts
     - https://pkgs.tailscale.com/helmcharts
@@ -114,12 +114,15 @@ metadata:
 spec:
   description: Metrics, logs, dashboards, and telemetry collection
   sourceRepos:
-    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://github.com/petzkod5/rivendell-talos-cluster.git
     - https://prometheus-community.github.io/helm-charts
     - https://grafana.github.io/helm-charts
   destinations:
     - server: https://kubernetes.default.svc
       namespace: monitoring
+    # kube-prometheus-stack ships a CoreDNS metrics Service into kube-system
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
@@ -137,7 +140,7 @@ metadata:
 spec:
   description: User-facing services and automation workloads
   sourceRepos:
-    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://github.com/petzkod5/rivendell-talos-cluster.git
     - https://charts.goauthentik.io
     - ghcr.io/petzkod5/charts
   destinations:
