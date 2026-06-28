@@ -3,6 +3,11 @@ kind: Deployment
 metadata:
   name: hermes-webui
   namespace: hermes
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "WebUI builds/stages runtime files into writable mounted directories; image hardening is tracked separately."
+    ignore-check.kube-linter.io/run-as-non-root: "Runtime UID/GID is controlled by WANTED_UID/WANTED_GID to match the shared PVC owner."
+    ignore-check.kube-linter.io/unset-cpu-requirements: "The stage-agent-src init container is a short-lived copy step; steady-state container resources are set."
+    ignore-check.kube-linter.io/unset-memory-requirements: "The stage-agent-src init container is a short-lived copy step; steady-state container resources are set."
   labels:
     app: hermes-webui
 spec:

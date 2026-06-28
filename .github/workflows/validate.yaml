@@ -95,8 +95,5 @@ jobs:
             -kubernetes-version 1.34.0 \
             "${files[@]}"
 
-      - name: Block mutable latest image tags
-        run: |
-          kube-linter lint kubernetes/manifests kubernetes/apps \
-            --do-not-auto-add-defaults \
-            --include latest-tag
+      - name: Run Kubernetes policy checks
+        run: kube-linter lint kubernetes/manifests kubernetes/apps --config .kube-linter.yaml

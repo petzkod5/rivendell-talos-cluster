@@ -8,7 +8,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.io
 spec:
-  project: default
+  project: cluster-platform
   source:
     repoURL: https://wiremind.github.io/wiremind-helm-charts
     chart: gateway-api-crds

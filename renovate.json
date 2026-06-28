@@ -1,32 +1,43 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "dependencyDashboard": true,
-  "labels": ["dependencies"],
+  "labels": [
+    "dependencies"
+  ],
   "prHourlyLimit": 4,
   "prConcurrentLimit": 6,
   "minimumReleaseAge": "3 days",
   "enabledManagers": [
-    "github-actions",
     "kubernetes",
     "helm-values",
     "helmfile",
     "custom.regex"
   ],
   "kubernetes": {
-    "managerFilePatterns": ["/(^|/)kubernetes/.+\\.ya?ml$/"]
+    "managerFilePatterns": [
+      "/(^|/)kubernetes/.+\\.ya?ml$/"
+    ]
   },
   "helm-values": {
-    "managerFilePatterns": ["/(^|/)kubernetes/values/.+\\.ya?ml$/"]
+    "managerFilePatterns": [
+      "/(^|/)kubernetes/values/.+\\.ya?ml$/"
+    ]
   },
   "helmfile": {
-    "managerFilePatterns": ["/(^|/)kubernetes/helmfile\\.ya?ml$/"]
+    "managerFilePatterns": [
+      "/(^|/)kubernetes/helmfile\\.ya?ml$/"
+    ]
   },
   "customManagers": [
     {
       "customType": "regex",
       "description": "Update Helm chart versions declared in Argo CD Applications",
-      "managerFilePatterns": ["/(^|/)kubernetes/apps/.+\\.ya?ml$/"],
+      "managerFilePatterns": [
+        "/(^|/)kubernetes/apps/.+\\.ya?ml$/"
+      ],
       "matchStrings": [
         "repoURL:\\s*(?<registryUrl>https://[^\\n]+)\\s*\\n\\s*chart:\\s*(?<depName>[^\\s]+)\\s*\\n\\s*targetRevision:\\s*(?<currentValue>[^\\s]+)"
       ],
@@ -35,7 +46,9 @@
     {
       "customType": "regex",
       "description": "Update OCI Helm chart versions declared in Argo CD Applications",
-      "managerFilePatterns": ["/(^|/)kubernetes/apps/.+\\.ya?ml$/"],
+      "managerFilePatterns": [
+        "/(^|/)kubernetes/apps/.+\\.ya?ml$/"
+      ],
       "matchStrings": [
         "repoURL:\\s*(?<registryUrl>ghcr\\.io/[^\\n]+)\\s*\\n\\s*chart:\\s*(?<depName>[^\\s]+)\\s*\\n\\s*targetRevision:\\s*(?<currentValue>[^\\s]+)"
       ],
@@ -46,28 +59,31 @@
   "packageRules": [
     {
       "description": "Require manual approval for major infrastructure updates",
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "dependencyDashboardApproval": true
     },
     {
       "description": "Automerge digest pin refreshes after CI passes",
-      "matchUpdateTypes": ["digest"],
+      "matchUpdateTypes": [
+        "digest"
+      ],
       "automerge": true,
       "automergeType": "pr"
     },
     {
       "description": "Do not automerge Helm chart updates until the workflow has proven stable",
-      "matchDatasources": ["helm"],
+      "matchDatasources": [
+        "helm"
+      ],
       "automerge": false
     },
     {
-      "description": "Group GitHub Actions updates",
-      "matchManagers": ["github-actions"],
-      "groupName": "github-actions"
-    },
-    {
       "description": "Group Kubernetes manifest image updates",
-      "matchManagers": ["kubernetes"],
+      "matchManagers": [
+        "kubernetes"
+      ],
       "groupName": "kubernetes-images"
     }
   ]

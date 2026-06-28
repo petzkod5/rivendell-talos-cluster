@@ -1,0 +1,157 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: argocd-system
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  description: ArgoCD control plane and repository root application
+  sourceRepos:
+    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://argoproj.github.io/argo-helm
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cluster-platform
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  description: Cluster-wide platform services and controllers
+  sourceRepos:
+    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://wiremind.github.io/wiremind-helm-charts
+    - https://kubernetes-sigs.github.io/metrics-server/
+    - https://charts.jetstack.io
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: gateway-system
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
+    - server: https://kubernetes.default.svc
+      namespace: cert-manager
+    - server: https://kubernetes.default.svc
+      namespace: traefik
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: storage
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  description: Storage provisioners and storage management
+  sourceRepos:
+    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://charts.longhorn.io
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: local-path-storage
+    - server: https://kubernetes.default.svc
+      namespace: longhorn-system
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: networking
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  description: Ingress, load-balancing, DNS, and tailnet connectivity
+  sourceRepos:
+    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://metallb.github.io/metallb
+    - https://traefik.github.io/charts
+    - https://pkgs.tailscale.com/helmcharts
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: metallb-system
+    - server: https://kubernetes.default.svc
+      namespace: traefik
+    - server: https://kubernetes.default.svc
+      namespace: tailscale
+    - server: https://kubernetes.default.svc
+      namespace: cloudflare-ddns
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: observability
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  description: Metrics, logs, dashboards, and telemetry collection
+  sourceRepos:
+    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://prometheus-community.github.io/helm-charts
+    - https://grafana.github.io/helm-charts
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: monitoring
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: workloads
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  description: User-facing services and automation workloads
+  sourceRepos:
+    - git@github.com:petzkod5/rivendell-talos-cluster.git
+    - https://charts.goauthentik.io
+    - ghcr.io/petzkod5/charts
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: authentik
+    - server: https://kubernetes.default.svc
+      namespace: hermes
+    - server: https://kubernetes.default.svc
+      namespace: megascope
+    - server: https://kubernetes.default.svc
+      namespace: renovate
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

@@ -4,6 +4,7 @@ metadata:
   name: coredns-lan
   namespace: kube-system
   annotations:
+    ignore-check.kube-linter.io/dangling-service: "Targets the Helm-managed CoreDNS deployment that is outside this raw manifest directory."
     # Reachable over the tailnet via the lan-subnet-router Connector so remote
     # devices can resolve *.home.local through this CoreDNS instance.
     metallb.universe.tf/loadBalancerIPs: 192.168.0.227
