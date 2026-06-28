@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: hermes
+  annotations:
+    # Operator stands up an egress proxy (ns tailscale) to this tailnet host and
+    # rewrites spec.externalName to the headless proxy svc. See ignoreDifferences
+    # in kubernetes/apps/hermes.yaml. Reached by the agent at
+    # http://ollama.hermes.svc.cluster.local:11434/v1 (Ollama OpenAI-compatible).
+    tailscale.com/tailnet-fqdn: petzko-pc-01.pintail-monster.ts.net
+spec:
+  type: ExternalName
+  externalName: placeholder   # operator overwrites this
+  ports:
+    - name: ollama
+      port: 11434
+      protocol: TCP
+      targetPort: 11434
