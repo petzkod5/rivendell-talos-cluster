@@ -151,16 +151,21 @@ syncPolicy:
 
 ## Secrets
 
-**Never commit secrets to git.** Create Kubernetes Secrets manually before ArgoCD syncs the app.
+**Never commit plaintext secrets to git.** Talos machine configs remain SOPS+age encrypted. Kubernetes application secrets are being migrated to Bitwarden Secrets Manager via External Secrets Operator (ESO).
 
-| Secret | Namespace | Keys | Purpose |
-|---|---|---|---|
-| `argocd-secret` | `argocd` | `oidc.authentik.clientSecret` | ArgoCD OIDC via Authentik |
-| `authentik-secrets` | `authentik` | `AUTHENTIK_SECRET_KEY`, `postgresql-password` | Authentik + PostgreSQL |
-| `cloudflare-api-token` | `cert-manager` | `api-token` | cert-manager DNS-01 challenges |
-| `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | DDNS A record updates |
-| `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `PHOTON_ALLOWED_USERS` | Hermes LLM provider key + API-server bearer token + Photon iMessage allowlist (E.164, comma-separated). Dashboard auth is via Authentik forward-auth (Traefik Middleware `hermes/authentik-forwardauth`), not in-app basic-auth. |
-| `hermes-ssh-key` | `hermes` | `id_ed25519` | SSH key the agent uses for its ssh terminal backend (`hermes@petzko-ubuntu-vm`, NOPASSWD sudo). |
+Bitwarden Secrets Manager:
+- Organization: `Elessar` (`37b972a5-3124-4652-aedd-b46900380e9d`)
+- Project: `rivendell-talos-cluster` (`ce084d0f-926e-46b9-9299-b4770120e063`)
+- ESO bootstrap credential: manually create/update Secret `external-secrets/bitwarden-access-token` with key `token` before syncing ESO config.
+
+| Secret | Namespace | Keys | Source | Purpose |
+|---|---|---|---|---|
+| `argocd-secret` | `argocd` | `oidc.authentik.clientSecret` | Manual for now | ArgoCD OIDC via Authentik |
+| `authentik-secrets` | `authentik` | `AUTHENTIK_SECRET_KEY`, `postgresql-password` | Manual for now | Authentik + PostgreSQL |
+| `cloudflare-api-token` | `cert-manager` | `api-token` | Manual for now | cert-manager DNS-01 challenges |
+| `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | ESO + Bitwarden (`k8s/cloudflare-ddns/cloudflare-api-token/api-token`) | DDNS A record updates |
+| `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `PHOTON_ALLOWED_USERS` | Manual for now | Hermes LLM provider key + API-server bearer token + Photon iMessage allowlist (E.164, comma-separated). Dashboard auth is via Authentik forward-auth (Traefik Middleware `hermes/authentik-forwardauth`), not in-app basic-auth. |
+| `hermes-ssh-key` | `hermes` | `id_ed25519` | Manual for now | SSH key the agent uses for its ssh terminal backend (`hermes@petzko-ubuntu-vm`, NOPASSWD sudo). |
 
 ## CoreDNS
 
