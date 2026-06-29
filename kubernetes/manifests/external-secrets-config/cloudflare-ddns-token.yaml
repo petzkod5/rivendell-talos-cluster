@@ -13,6 +13,8 @@ spec:
     creationPolicy: Merge
     deletionPolicy: Retain
     template:
+      engineVersion: v2
+      mergePolicy: Replace
       metadata:
         annotations:
           # ESO creates the target Secret from this ExternalSecret. Because ESO
@@ -26,3 +28,6 @@ spec:
         # Stable Bitwarden Secrets Manager ID for:
         # k8s/cloudflare-ddns/cloudflare-api-token/api-token
         key: 031ac2aa-ece9-4dcd-9066-b47701214211 # gitleaks:allow -- Bitwarden secret UUID identifier, not the secret value.
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
