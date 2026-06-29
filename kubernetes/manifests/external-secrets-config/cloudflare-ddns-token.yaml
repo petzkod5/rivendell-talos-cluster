@@ -12,6 +12,14 @@ spec:
     name: cloudflare-api-token
     creationPolicy: Merge
     deletionPolicy: Retain
+    template:
+      metadata:
+        annotations:
+          # ESO creates the target Secret from this ExternalSecret. Because ESO
+          # copies ArgoCD's tracking annotation from the ExternalSecret to the
+          # generated Secret, tell ArgoCD not to treat the generated Secret as
+          # unmanaged drift in this app.
+          argocd.argoproj.io/compare-options: IgnoreExtraneous
   data:
     - secretKey: api-token
       remoteRef:
