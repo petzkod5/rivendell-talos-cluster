@@ -167,7 +167,7 @@ Bitwarden Secrets Manager:
 | `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | ESO + Bitwarden (`k8s/cloudflare-ddns/cloudflare-api-token/api-token`) | DDNS A record updates |
 | `grafana-admin` | `monitoring` | `admin-user`, `admin-password` | ESO + Bitwarden (`k8s/monitoring/grafana-admin/*`) | Grafana bootstrap/admin credentials |
 | `grafana-oidc` | `monitoring` | `GF_AUTH_GENERIC_OAUTH_CLIENT_ID`, `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` | ESO + Bitwarden (`k8s/monitoring/grafana-oidc/*`) | Grafana Authentik OIDC client credentials |
-| `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `PHOTON_ALLOWED_USERS` | Manual for now | Hermes LLM provider key + API-server bearer token + Photon iMessage allowlist (E.164, comma-separated). Dashboard auth is via Authentik forward-auth (Traefik Middleware `hermes/authentik-forwardauth`), not in-app basic-auth. |
+| `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `PHOTON_ALLOWED_USERS` | ESO + Bitwarden (`k8s/hermes/hermes-secrets/*`) | Hermes LLM provider key + API-server bearer token + Photon iMessage allowlist (E.164, comma-separated). Dashboard auth is via Authentik forward-auth (Traefik Middleware `hermes/authentik-forwardauth`), not in-app basic-auth. |
 | `hermes-ssh-key` | `hermes` | `id_ed25519` | Manual for now | SSH key the agent uses for its ssh terminal backend (`hermes@petzko-ubuntu-vm`, NOPASSWD sudo). |
 | `renovate` | `renovate` | `token` | ESO + Bitwarden (`k8s/renovate/renovate/token`) | Renovate GitHub token |
 
@@ -205,11 +205,18 @@ kubectl create namespace cloudflare-ddns
 kubectl create secret generic cloudflare-api-token -n cloudflare-ddns \
   --from-literal=api-token=<token>
 
-# Authentik secrets
+# Authentik secrets target Secret for ESO Merge-mode bootstrap
 kubectl create namespace authentik
 kubectl create secret generic authentik-secrets -n authentik \
   --from-literal=AUTHENTIK_SECRET_KEY=<key> \
   --from-literal=postgresql-password=<password>
+
+# Hermes env target Secret for ESO Merge-mode bootstrap
+kubectl create namespace hermes
+kubectl create secret generic hermes-secrets -n hermes \
+  --from-literal=API_SERVER_KEY=<key> \
+  --from-literal=OPENROUTER_API_KEY=<key> \
+  --from-literal=PHOTON_ALLOWED_USERS=<e164-comma-list>
 ```
 
 **Bootstrap:**
