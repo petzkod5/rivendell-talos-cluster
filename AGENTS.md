@@ -163,12 +163,13 @@ Bitwarden Secrets Manager:
 |---|---|---|---|---|
 | `argocd-secret` | `argocd` | `oidc.authentik.clientSecret` | Manual for now | ArgoCD OIDC via Authentik |
 | `authentik-secrets` | `authentik` | `AUTHENTIK_SECRET_KEY`, `postgresql-password` | Manual for now | Authentik + PostgreSQL |
-| `cloudflare-api-token` | `cert-manager` | `api-token` | Manual for now | cert-manager DNS-01 challenges |
+| `cloudflare-api-token` | `cert-manager` | `api-token` | ESO + Bitwarden (`k8s/cert-manager/cloudflare-api-token/api-token`) | cert-manager DNS-01 challenges |
 | `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | ESO + Bitwarden (`k8s/cloudflare-ddns/cloudflare-api-token/api-token`) | DDNS A record updates |
 | `grafana-admin` | `monitoring` | `admin-user`, `admin-password` | ESO + Bitwarden (`k8s/monitoring/grafana-admin/*`) | Grafana bootstrap/admin credentials |
 | `grafana-oidc` | `monitoring` | `GF_AUTH_GENERIC_OAUTH_CLIENT_ID`, `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` | ESO + Bitwarden (`k8s/monitoring/grafana-oidc/*`) | Grafana Authentik OIDC client credentials |
 | `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `PHOTON_ALLOWED_USERS` | Manual for now | Hermes LLM provider key + API-server bearer token + Photon iMessage allowlist (E.164, comma-separated). Dashboard auth is via Authentik forward-auth (Traefik Middleware `hermes/authentik-forwardauth`), not in-app basic-auth. |
 | `hermes-ssh-key` | `hermes` | `id_ed25519` | Manual for now | SSH key the agent uses for its ssh terminal backend (`hermes@petzko-ubuntu-vm`, NOPASSWD sudo). |
+| `renovate` | `renovate` | `token` | ESO + Bitwarden (`k8s/renovate/renovate/token`) | Renovate GitHub token |
 
 ## CoreDNS
 
@@ -190,13 +191,16 @@ Then restart CoreDNS: `kubectl rollout restart deployment/coredns -n kube-system
 ## Bootstrap (fresh cluster)
 
 **Pre-requisites before `helmfile sync`:**
+
+Some app secrets are already ESO + Bitwarden backed but still use `creationPolicy: Merge`; create the target Secret objects during fresh bootstrap until a later PR moves them to a creation policy that can recreate missing Secrets.
+
 ```sh
-# cert-manager Cloudflare token
+# cert-manager Cloudflare token target Secret for ESO Merge-mode bootstrap
 kubectl create namespace cert-manager
 kubectl create secret generic cloudflare-api-token -n cert-manager \
   --from-literal=api-token=<token>
 
-# DDNS Cloudflare token
+# DDNS Cloudflare token target Secret for ESO Merge-mode bootstrap
 kubectl create namespace cloudflare-ddns
 kubectl create secret generic cloudflare-api-token -n cloudflare-ddns \
   --from-literal=api-token=<token>
