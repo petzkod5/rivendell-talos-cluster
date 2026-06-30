@@ -1,0 +1,33 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: grafana-oidc
+  namespace: monitoring
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden
+    kind: ClusterSecretStore
+  target:
+    name: grafana-oidc
+    creationPolicy: Merge
+    deletionPolicy: Retain
+    template:
+      engineVersion: v2
+      mergePolicy: Replace
+      metadata:
+        annotations:
+          argocd.argoproj.io/compare-options: IgnoreExtraneous
+  data:
+    - secretKey: GF_AUTH_GENERIC_OAUTH_CLIENT_ID
+      remoteRef:
+        key: 984ad1e3-ef9f-410d-8e58-b4770121453d # gitleaks:allow -- Bitwarden secret UUID identifier, not the secret value.
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+    - secretKey: GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
+      remoteRef:
+        key: 1395ae3d-2a39-43de-a2b5-b4770121455d # gitleaks:allow -- Bitwarden secret UUID identifier, not the secret value.
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None

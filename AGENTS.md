@@ -157,6 +157,7 @@ Bitwarden Secrets Manager:
 - Organization: `Elessar` (`37b972a5-3124-4652-aedd-b46900380e9d`)
 - Project: `rivendell-talos-cluster` (`ce084d0f-926e-46b9-9299-b4770120e063`)
 - ESO bootstrap credential: manually create/update Secret `external-secrets/bitwarden-access-token` with key `token` before syncing ESO config.
+- Current app-secret migrations use `creationPolicy: Merge` for safe live rollout. Fresh-cluster bootstrap still needs target Secret objects to exist until a later PR switches selected secrets to `Owner` or `Orphan`.
 
 | Secret | Namespace | Keys | Source | Purpose |
 |---|---|---|---|---|
@@ -164,6 +165,8 @@ Bitwarden Secrets Manager:
 | `authentik-secrets` | `authentik` | `AUTHENTIK_SECRET_KEY`, `postgresql-password` | Manual for now | Authentik + PostgreSQL |
 | `cloudflare-api-token` | `cert-manager` | `api-token` | Manual for now | cert-manager DNS-01 challenges |
 | `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | ESO + Bitwarden (`k8s/cloudflare-ddns/cloudflare-api-token/api-token`) | DDNS A record updates |
+| `grafana-admin` | `monitoring` | `admin-user`, `admin-password` | ESO + Bitwarden (`k8s/monitoring/grafana-admin/*`) | Grafana bootstrap/admin credentials |
+| `grafana-oidc` | `monitoring` | `GF_AUTH_GENERIC_OAUTH_CLIENT_ID`, `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` | ESO + Bitwarden (`k8s/monitoring/grafana-oidc/*`) | Grafana Authentik OIDC client credentials |
 | `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `PHOTON_ALLOWED_USERS` | Manual for now | Hermes LLM provider key + API-server bearer token + Photon iMessage allowlist (E.164, comma-separated). Dashboard auth is via Authentik forward-auth (Traefik Middleware `hermes/authentik-forwardauth`), not in-app basic-auth. |
 | `hermes-ssh-key` | `hermes` | `id_ed25519` | Manual for now | SSH key the agent uses for its ssh terminal backend (`hermes@petzko-ubuntu-vm`, NOPASSWD sudo). |
 
