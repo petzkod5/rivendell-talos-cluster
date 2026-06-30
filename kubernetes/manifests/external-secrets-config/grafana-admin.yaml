@@ -1,0 +1,33 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: grafana-admin
+  namespace: monitoring
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden
+    kind: ClusterSecretStore
+  target:
+    name: grafana-admin
+    creationPolicy: Merge
+    deletionPolicy: Retain
+    template:
+      engineVersion: v2
+      mergePolicy: Replace
+      metadata:
+        annotations:
+          argocd.argoproj.io/compare-options: IgnoreExtraneous
+  data:
+    - secretKey: admin-user
+      remoteRef:
+        key: 97cf2e81-63ea-49a0-ada9-b477012144a2 # gitleaks:allow -- Bitwarden secret UUID identifier, not the secret value.
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+    - secretKey: admin-password
+      remoteRef:
+        key: a462b274-214d-4c5f-a31a-b47701214484 # gitleaks:allow -- Bitwarden secret UUID identifier, not the secret value.
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
