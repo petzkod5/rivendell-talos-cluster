@@ -1,0 +1,27 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: renovate
+  namespace: renovate
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden
+    kind: ClusterSecretStore
+  target:
+    name: renovate
+    creationPolicy: Merge
+    deletionPolicy: Retain
+    template:
+      engineVersion: v2
+      mergePolicy: Replace
+      metadata:
+        annotations:
+          argocd.argoproj.io/compare-options: IgnoreExtraneous
+  data:
+    - secretKey: token
+      remoteRef:
+        key: 52f24608-0888-4123-9429-b47701214401 # gitleaks:allow -- Bitwarden secret UUID identifier, not the secret value.
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None

@@ -49,9 +49,8 @@ spec:
                   value: /tmp
                 - name: RENOVATE_BASE_DIR
                   value: /tmp/renovate
-                # GitHub PAT (repo + workflow scopes) — created out-of-band:
-                #   kubectl create secret generic renovate -n renovate \
-                #     --from-literal=token=ghp_xxx
+                # GitHub PAT (repo + workflow scopes), managed by External
+                # Secrets Operator from Bitwarden Secret Manager.
                 - name: RENOVATE_TOKEN
                   valueFrom:
                     secretKeyRef:
