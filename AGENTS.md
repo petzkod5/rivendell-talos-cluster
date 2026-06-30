@@ -162,7 +162,7 @@ Bitwarden Secrets Manager:
 | Secret | Namespace | Keys | Source | Purpose |
 |---|---|---|---|---|
 | `argocd-secret` | `argocd` | `oidc.authentik.clientSecret` | Manual for now | ArgoCD OIDC via Authentik |
-| `authentik-secrets` | `authentik` | `AUTHENTIK_SECRET_KEY`, `postgresql-password` | Manual for now | Authentik + PostgreSQL |
+| `authentik-secrets` | `authentik` | `AUTHENTIK_SECRET_KEY`, `postgresql-password` | ESO + Bitwarden (`k8s/authentik/authentik-secrets/*`) | Authentik + PostgreSQL |
 | `cloudflare-api-token` | `cert-manager` | `api-token` | ESO + Bitwarden (`k8s/cert-manager/cloudflare-api-token/api-token`) | cert-manager DNS-01 challenges |
 | `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | ESO + Bitwarden (`k8s/cloudflare-ddns/cloudflare-api-token/api-token`) | DDNS A record updates |
 | `grafana-admin` | `monitoring` | `admin-user`, `admin-password` | ESO + Bitwarden (`k8s/monitoring/grafana-admin/*`) | Grafana bootstrap/admin credentials |
