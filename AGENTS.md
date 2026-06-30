@@ -168,7 +168,7 @@ Bitwarden Secrets Manager:
 | `grafana-admin` | `monitoring` | `admin-user`, `admin-password` | ESO + Bitwarden (`k8s/monitoring/grafana-admin/*`) | Grafana bootstrap/admin credentials |
 | `grafana-oidc` | `monitoring` | `GF_AUTH_GENERIC_OAUTH_CLIENT_ID`, `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` | ESO + Bitwarden (`k8s/monitoring/grafana-oidc/*`) | Grafana Authentik OIDC client credentials |
 | `hermes-secrets` | `hermes` | `OPENROUTER_API_KEY`, `API_SERVER_KEY`, `PHOTON_ALLOWED_USERS` | ESO + Bitwarden (`k8s/hermes/hermes-secrets/*`) | Hermes LLM provider key + API-server bearer token + Photon iMessage allowlist (E.164, comma-separated). Dashboard auth is via Authentik forward-auth (Traefik Middleware `hermes/authentik-forwardauth`), not in-app basic-auth. |
-| `hermes-ssh-key` | `hermes` | `id_ed25519` | Manual for now | SSH key the agent uses for its ssh terminal backend (`hermes@petzko-ubuntu-vm`, NOPASSWD sudo). |
+| `hermes-ssh-key` | `hermes` | `id_ed25519` | ESO + Bitwarden (`k8s/hermes/hermes-ssh-key/id_ed25519`) | SSH key the agent uses for its ssh terminal backend (`hermes@petzko-ubuntu-vm`, NOPASSWD sudo). |
 | `renovate` | `renovate` | `token` | ESO + Bitwarden (`k8s/renovate/renovate/token`) | Renovate GitHub token |
 
 ## CoreDNS
@@ -217,6 +217,11 @@ kubectl create secret generic hermes-secrets -n hermes \
   --from-literal=API_SERVER_KEY=<key> \
   --from-literal=OPENROUTER_API_KEY=<key> \
   --from-literal=PHOTON_ALLOWED_USERS=<e164-comma-list>
+
+# Hermes SSH target Secret for ESO Merge-mode bootstrap; prefer a temp file
+# with mode 0600, then securely delete the file after the Secret exists.
+kubectl create secret generic hermes-ssh-key -n hermes \
+  --from-file=id_ed25519=/path/to/id_ed25519
 ```
 
 **Bootstrap:**
