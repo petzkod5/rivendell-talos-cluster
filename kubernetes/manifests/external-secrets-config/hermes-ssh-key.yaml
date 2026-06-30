@@ -1,0 +1,27 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: hermes-ssh-key
+  namespace: hermes
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden
+    kind: ClusterSecretStore
+  target:
+    name: hermes-ssh-key
+    creationPolicy: Merge
+    deletionPolicy: Retain
+    template:
+      engineVersion: v2
+      mergePolicy: Replace
+      metadata:
+        annotations:
+          argocd.argoproj.io/compare-options: IgnoreExtraneous
+  data:
+    - secretKey: id_ed25519
+      remoteRef:
+        key: c2b1b9cc-8eff-42e5-9197-b4770121436c # gitleaks:allow -- Bitwarden secret UUID identifier, not the secret value.
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
