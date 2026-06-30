@@ -161,7 +161,7 @@ Bitwarden Secrets Manager:
 
 | Secret | Namespace | Keys | Source | Purpose |
 |---|---|---|---|---|
-| `argocd-secret` | `argocd` | `oidc.authentik.clientSecret` | Manual for now | ArgoCD OIDC via Authentik |
+| `argocd-secret` | `argocd` | `admin.password`, `admin.passwordMtime`, `oidc.authentik.clientSecret`, `server.secretkey` | ESO + Bitwarden (`k8s/argocd/argocd-secret/*`) | ArgoCD local admin, OIDC client secret, and session signing key |
 | `authentik-secrets` | `authentik` | `AUTHENTIK_SECRET_KEY`, `postgresql-password` | ESO + Bitwarden (`k8s/authentik/authentik-secrets/*`) | Authentik + PostgreSQL |
 | `cloudflare-api-token` | `cert-manager` | `api-token` | ESO + Bitwarden (`k8s/cert-manager/cloudflare-api-token/api-token`) | cert-manager DNS-01 challenges |
 | `cloudflare-api-token` | `cloudflare-ddns` | `api-token` | ESO + Bitwarden (`k8s/cloudflare-ddns/cloudflare-api-token/api-token`) | DDNS A record updates |
@@ -222,7 +222,7 @@ Then in ArgoCD UI:
 1. Add repo credentials (SSH key for `https://github.com/petzkod5/rivendell-talos-cluster.git`)
 2. Sync the `root` Application — ArgoCD installs everything else in wave order
 3. After Authentik is up: configure GitHub OAuth source and create ArgoCD OIDC provider
-4. Patch `argocd-secret` with OIDC client secret
+4. Store/update the ArgoCD OIDC client secret in Bitwarden (`k8s/argocd/argocd-secret/oidc.authentik.clientSecret`) and let ESO sync `argocd-secret`. Emergency manual patches to `argocd-secret` must be followed by updating Bitwarden, or ESO will restore the Bitwarden value.
 
 ## Commit conventions
 
