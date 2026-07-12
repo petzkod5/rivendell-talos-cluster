@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://wiremind.github.io/wiremind-helm-charts
     chart: gateway-api-crds
-    targetRevision: 1.5.1
+    targetRevision: 1.6.0
   destination:
     server: https://kubernetes.default.svc
     namespace: gateway-system
