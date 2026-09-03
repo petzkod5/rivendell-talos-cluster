@@ -31,7 +31,7 @@ spec:
         # Stage the agent source from the SAME image the agent runs, so the
         # webui `uv pip install`s a hermes_state/schema that matches state.db.
         - name: stage-agent-src
-          image: docker.io/nousresearch/hermes-agent:v2026.6.19
+          image: docker.io/nousresearch/hermes-agent:v2026.8.31
           command:
             - sh
             - -c
@@ -41,7 +41,7 @@ spec:
               mountPath: /agent-src
       containers:
         - name: hermes-webui
-          image: ghcr.io/nesquena/hermes-webui@sha256:71cc0efbed003548fad4cd6c37d9de97bff44cd267f597126e52a32a4ce0a807
+          image: ghcr.io/nesquena/hermes-webui@sha256:1cbd42331e2046706230310e5fa0db537860536b87e7011630d4d4b6eebab2e2
           imagePullPolicy: IfNotPresent
           # Provider keys (OPENROUTER_API_KEY, API_SERVER_KEY, …) so webui-run
           # agent turns use the same providers as the gateway.
